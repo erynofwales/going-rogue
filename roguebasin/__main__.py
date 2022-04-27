@@ -3,6 +3,7 @@
 
 from . import object
 from . import main
+from . import tile
 
 if __name__ == '__main__':
     import sys

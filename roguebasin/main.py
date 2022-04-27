@@ -97,8 +97,3 @@ def main(argv):
 
                 if not handled:
                     LOG.info(f'Unhandled event: {event}')
-
-if __name__ == '__main__':
-    import sys
-    result = main(sys.argv)
-    sys.exit(0 if not result else result)

@@ -8,6 +8,7 @@ New script.
 import argparse
 import logging
 import os.path
+import random
 import tcod
 from .object import Object
 
@@ -16,7 +17,8 @@ FONT = 'terminal16x16_gs_ro.png'
 
 LOG = logging.getLogger('roguebasin')
 
-PLAYER = Object('@', x=CONSOLE_WIDTH / 2, y=CONSOLE_HEIGHT / 2)
+PLAYER = Object('@', x=CONSOLE_WIDTH // 2, y=CONSOLE_HEIGHT // 2)
+NPC = Object('@', color=tcod.yellow, x=random.randint(0, CONSOLE_WIDTH), y=random.randint(0, CONSOLE_HEIGHT))
 
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
@@ -65,11 +67,14 @@ def main(argv):
     tileset = tcod.tileset.load_tilesheet(font, 16, 16, tcod.tileset.CHARMAP_CP437)
     console = tcod.Console(CONSOLE_WIDTH, CONSOLE_HEIGHT, order='F')
 
+    objects = [PLAYER, NPC]
+
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
         while True:
             console.clear()
 
-            PLAYER.print(console)
+            for obj in objects:
+                obj.print(console)
 
             context.present(console)
 

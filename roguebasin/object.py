@@ -8,10 +8,11 @@ class Object:
     A drawable object with a symbol and (x, y) position.
     '''
 
-    def __init__(self, symbol, x=0, y=0):
+    def __init__(self, symbol, color=(255, 255, 255), x=0, y=0):
         self.__x = int(x)
         self.__y = int(y)
-        self.symbol = symbol
+        self.__color = color
+        self.__symbol = symbol
 
     @property
     def x(self):
@@ -30,4 +31,4 @@ class Object:
         self.__y = int(value)
 
     def print(self, console: tcod.Console) -> None:
-        console.print(x=self.__x, y=self.__y, string=self.symbol)
+        console.print(x=self.__x, y=self.__y, string=self.__symbol, fg=self.__color)

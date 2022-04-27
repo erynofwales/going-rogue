@@ -6,16 +6,17 @@ New script.
 '''
 
 import argparse
-from curses import KEY_DOWN
 import logging
-import math
 import os.path
 import tcod
+from .object import Object
 
 CONSOLE_WIDTH, CONSOLE_HEIGHT = 50, 50
 FONT = 'terminal16x16_gs_ro.png'
 
 LOG = logging.getLogger('roguebasin')
+
+PLAYER = Object('@', x=CONSOLE_WIDTH / 2, y=CONSOLE_HEIGHT / 2)
 
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
@@ -65,10 +66,11 @@ def main(argv):
     console = tcod.Console(CONSOLE_WIDTH, CONSOLE_HEIGHT, order='F')
 
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
-        player_x, player_y = math.floor(CONSOLE_WIDTH / 2), math.floor(CONSOLE_HEIGHT / 2)
         while True:
             console.clear()
-            console.print(x=player_x, y=player_y, string='@')
+
+            PLAYER.print(console)
+
             context.present(console)
 
             for event in tcod.event.wait():
@@ -81,13 +83,13 @@ def main(argv):
                 elif isinstance(event, tcod.event.KeyDown):
                     sym = event.sym
                     if sym == tcod.event.KeySym.h:
-                        player_x = max([0, player_x - 1])
+                        PLAYER.x = max([0, PLAYER.x - 1])
                     elif sym == tcod.event.KeySym.j:
-                        player_y = min([CONSOLE_HEIGHT - 1, player_y + 1])
+                        PLAYER.y = min([CONSOLE_HEIGHT - 1, PLAYER.y + 1])
                     elif sym == tcod.event.KeySym.k:
-                        player_y = max([0, player_y - 1])
+                        PLAYER.y = max([0, PLAYER.y - 1])
                     elif sym == tcod.event.KeySym.l:
-                        player_x = min([CONSOLE_WIDTH - 1, player_x + 1])
+                        PLAYER.x = min([CONSOLE_WIDTH - 1, PLAYER.x + 1])
                     else:
                         handled = False
                 else:

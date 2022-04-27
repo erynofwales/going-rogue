@@ -10,7 +10,7 @@ def main() -> None:
 
     # Load the font, a 32 by 8 tile font with libtcod's old character layout.
     tileset = tcod.tileset.load_tilesheet(
-        "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
+        "fonts/terminal16x16_gs_ro.png", 16, 16, tcod.tileset.CHARMAP_CP437,
     )
 
     # Create the main console.

@@ -13,27 +13,23 @@ import tcod
 from .engine import Configuration, Engine
 from .events import EventHandler
 from .geometry import Size
-from .object import Object
+
+LOG = logging.getLogger('main')
 
 CONSOLE_WIDTH, CONSOLE_HEIGHT = 80, 50
-FONT = 'terminal16x16_gs_ro.png'
-
-LOG = logging.getLogger('roguebasin')
-
 MAP_WIDTH, MAP_HEIGHT = 80, 45
 
-PLAYER = Object('@', x=MAP_WIDTH // 2, y=MAP_HEIGHT // 2)
-NPC = Object('@', color=tcod.yellow, x=random.randint(0, MAP_WIDTH), y=random.randint(0, MAP_HEIGHT))
+FONT = 'terminal16x16_gs_ro.png'
 
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
-    # TODO: Configure arguments here.
+    parser.add_argument('--debug', action='store_true')
     args = parser.parse_args(argv)
     return args
 
-def init_logging():
+def init_logging(args):
     root_logger = logging.getLogger('')
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
     stderr_handler = logging.StreamHandler()
     stderr_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s: %(message)s"))
@@ -41,9 +37,7 @@ def init_logging():
     root_logger.addHandler(stderr_handler)
 
 def find_fonts_directory():
-    '''
-    Walk up the filesystem tree from this script to find a fonts/ directory.
-    '''
+    '''Walk up the filesystem tree from this script to find a fonts/ directory.'''
     parent_dir = os.path.dirname(__file__)
     while parent_dir and parent_dir != '/':
         possible_fonts_dir = os.path.join(parent_dir, 'fonts')
@@ -59,14 +53,16 @@ def find_fonts_directory():
 def main(argv):
     args = parse_args(argv[1:], prog=argv[0])
 
-    init_logging()
+    init_logging(args)
 
     fonts_directory = find_fonts_directory()
     if not fonts_directory:
+        LOG.error("Couldn't find a fonts/ directory")
         return -1
 
     font = os.path.join(fonts_directory, FONT)
     if not os.path.isfile(font):
+        LOG.error(f"Font file {font} doesn't exist")
         return -1
 
     tileset = tcod.tileset.load_tilesheet(font, 16, 16, tcod.tileset.CHARMAP_CP437)

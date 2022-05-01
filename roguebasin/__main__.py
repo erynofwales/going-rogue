@@ -5,6 +5,7 @@ from . import actions
 from . import events
 from . import geometry
 from . import main
+from . import map
 from . import object
 from . import tile
 

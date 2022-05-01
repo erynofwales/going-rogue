@@ -39,7 +39,7 @@ def init_logging():
     stderr_handler = logging.StreamHandler()
     stderr_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s: %(message)s"))
 
-    root_logger.addHandler(logging.StreamHandler())
+    root_logger.addHandler(stderr_handler)
 
 def find_fonts_directory():
     '''

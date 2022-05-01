@@ -41,12 +41,12 @@ class Engine:
 
         if isinstance(action, MovePlayerAction):
             map_size = self.configuration.map_size
-            new_player_position = Point(max(0, min(map_size.width - 1, self.player.x + action.direction[0])),
-                                        max(0, min(map_size.height - 1, self.player.y + action.direction[1])))
-            can_move_to_level_position = not self.map.tile_for_point(new_player_position).blocks_movement
+            new_player_position = Point(self.player.x + action.direction[0],
+                                        self.player.y + action.direction[1])
+            can_move_to_map_position = self.map.tile_is_in_bounds(new_player_position) and self.map.tile_is_walkable(new_player_position)
             overlaps_an_object = any(new_player_position.x == obj.x and new_player_position.y == obj.y for obj in self.objects)
-            if can_move_to_level_position and not overlaps_an_object:
-                EVENT_LOG.debug(f'Moving player to {new_player_position}; can_move:{can_move_to_level_position} overlaps:{overlaps_an_object}')
+            EVENT_LOG.debug(f'Attempting to move player to {new_player_position}; can_move:{can_move_to_map_position} overlaps:{overlaps_an_object}')
+            if can_move_to_map_position and not overlaps_an_object:
                 self.player.move_to(new_player_position)
 
         if isinstance(action, ExitAction):

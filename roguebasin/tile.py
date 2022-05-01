@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
-import tcod
-from typing import Optional
+import numpy as np
+from typing import Tuple
 
-class Tile:
-    class Color:
-        WALL = tcod.Color(255, 255, 255)
-        GROUND = tcod.Color(33, 33, 33)
+graphic_datatype = np.dtype([
+    # Character, a Unicode codepoint represented as an int32
+    ('ch', np.int32),
+    # Foreground color, three bytes
+    ('fg', '3B'),
+    # Background color, three bytes
+    ('bg', '3B'),
+])
 
-    def __init__(self, blocks_movement: bool, blocks_sight: Optional[bool] = None):
-        self.blocks_movement = blocks_movement
+tile_datatype = np.dtype([
+    # Bool indicating whether this tile can be traversed
+    ('walkable', np.bool),
+    # Bool indicating whether this tile is transparent
+    ('transparent', np.bool),
+    # A graphic struct (as above) defining the look of this tile when it's not visible
+    ('dark', graphic_datatype),
+])
 
-        # If blocks_sight isn't explicitly given, tiles that block movement also block sight.
-        if blocks_sight is None:
-            self.blocks_sight = blocks_movement
-        else:
-            self.blocks_sight = blocks_sight
+def tile(*, walkable: int, transparent: int, dark: Tuple[int, Tuple[int, int, int], Tuple[int, int ,int]]) -> np.ndarray:
+    return np.array((walkable, transparent, dark), dtype=tile_datatype)
+
+Floor = tile(walkable=True, transparent=True, dark=(ord(' '), (255, 255, 255), (50, 50, 150)))
+Wall = tile(walkable=False, transparent=False, dark=(ord(' '), (255, 255, 255), (0, 0, 150)))

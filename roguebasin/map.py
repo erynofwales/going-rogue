@@ -2,9 +2,10 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import logging
+import numpy as np
 import tcod
 from .geometry import Point, Rect, Size
-from .tile import Tile
+from .tile import Floor, Wall
 from typing import List
 
 LOG = logging.getLogger('map')
@@ -13,7 +14,7 @@ class Map:
     def __init__(self, size: Size):
         self.size = size
 
-        self.tiles: List[List[Tile]] = [[Tile(False) for y in range(size.height)] for x in range(size.width)]
+        self.tiles = np.full(self.size.as_tuple, fill_value=Floor, order="F")
 
         self.rng = tcod.random.Random()
 
@@ -24,8 +25,11 @@ class Map:
 
         self.update_tiles()
 
-    def tile_for_point(self, point: Point) -> Tile:
-        return self.tiles[point.x][point.y]
+    def tile_is_in_bounds(self, point: Point) -> bool:
+        return 0 <= point.x < self.size.width and 0 <= point.y < self.size.height
+
+    def tile_is_walkable(self, point: Point) -> bool:
+        return self.tiles[point.x, point.y]['walkable']
 
     def generate_partitions(self):
         bsp = tcod.bsp.BSP(x=0, y=0, width=self.size.width, height=self.size.height)
@@ -65,21 +69,23 @@ class Map:
         return rooms
 
     def update_tiles(self):
-        for column in self.tiles:
-            for tile in column:
-                tile.blocks_movement = False
-                tile.blocks_sight = False
+        # Fill the whole map with walls
+        width, height = self.size.as_tuple
+        self.tiles[0:width, 0:height] = Wall
 
+        # Dig out rooms
         for room in self.rooms:
             for y in range(room.min_y, room.max_y + 1):
                 for x in range(room.min_x, room.max_x + 1):
-                    if y == room.min_y or y == room.max_y or x == room.min_x or x == room.max_x:
-                        self.tiles[x][y].blocks_movement = True
+                    self.tiles[x, y] = Floor
 
-    def print_to_console(self, console: tcod.Console):
+    def print_to_console(self, console: tcod.Console) -> None:
         # for part in self.partitions:
         #     console.draw_frame(part.x, part.y, part.width, part.height, bg=(40, 40, 80), clear=True, decoration="···· ····")
 
-        for room in self.rooms:
-            console.draw_frame(room.origin.x, room.origin.y, room.size.width, room.size.height,
-                fg=(255, 255, 255), bg=(80, 40, 40), clear=True)
+        # for room in self.rooms:
+        #     console.draw_frame(room.origin.x, room.origin.y, room.size.width, room.size.height,
+        #         fg=(255, 255, 255), bg=(80, 40, 40), clear=True)
+
+        size = self.size
+        console.tiles_rgb[0:size.width, 0:size.height] = self.tiles["dark"]

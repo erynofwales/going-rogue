@@ -2,6 +2,7 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import tcod
+from .geometry import Point, Vector
 
 class Object:
     '''A drawable object with a symbol and (x, y) position.'''
@@ -28,15 +29,15 @@ class Object:
     def y(self, value):
         self.__y = int(value)
 
-    def move(self, dx: int, dy: int):
+    def move(self, delta: Vector):
         '''Move this object by (dx, dy).'''
-        self.__x += dx
-        self.__y += dy
+        self.__x += delta.dx
+        self.__y += delta.dy
 
-    def move_to(self, x: int, y: int) -> None:
+    def move_to(self, point: Point) -> None:
         '''Move this object directly to the given position.'''
-        self.__x = x
-        self.__y = y
+        self.__x = point.x
+        self.__y = point.y
 
     def print(self, console: tcod.Console) -> None:
         console.print(x=self.__x, y=self.__y, string=self.__symbol, fg=self.__color)

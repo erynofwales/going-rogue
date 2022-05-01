@@ -28,7 +28,9 @@ class Engine:
         map_size = configuration.map_size
         self.map = Map(map_size)
 
-        self.player = Object('@', tcod.white, x=int(map_size.width / 2), y=int(map_size.height / 2))
+        first_room = self.map.rooms[0]
+        player_start_position = first_room.midpoint
+        self.player = Object('@', tcod.white, x=player_start_position.x, y=player_start_position.y)
         self.objects: AbstractSet[Object] = {self.player}
         for _ in range(self.rng.randint(1, 15)):
             self.objects.add(Object('@', color=tcod.yellow, x=self.rng.randint(0, map_size.width), y=self.rng.randint(0, map_size.height)))

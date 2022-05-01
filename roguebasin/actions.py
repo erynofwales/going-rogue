@@ -12,14 +12,14 @@ class RegenerateRoomsAction(Action):
 
 class MovePlayerAction(Action):
     class Direction:
-        North = (0, -1)
-        NorthEast = (1, -1)
-        East = (1, 0)
-        SouthEast = (1, 1)
-        South = (0, 1)
-        SouthWest = (-1, 1)
-        West = (-1, 0)
-        NorthWest = (-1, -1)
+        North = Vector(0, -1)
+        NorthEast = Vector(1, -1)
+        East = Vector(1, 0)
+        SouthEast = Vector(1, 1)
+        South = Vector(0, 1)
+        SouthWest = Vector(-1, 1)
+        West = Vector(-1, 0)
+        NorthWest = Vector(-1, -1)
 
     def __init__(self, direction: Direction):
         self.direction = direction

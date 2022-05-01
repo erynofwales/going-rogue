@@ -51,12 +51,20 @@ class Rect:
         self.size = Size(w, h)
 
     @property
+    def min_x(self) -> int:
+        return self.origin.x
+
+    @property
+    def min_y(self) -> int:
+        return self.origin.y
+
+    @property
     def max_x(self) -> int:
-        return self.origin.x + self.size.width
+        return self.origin.x + self.size.width - 1
 
     @property
     def max_y(self) -> int:
-        return self.origin.y + self.size.height
+        return self.origin.y + self.size.height - 1
 
     def __str__(self):
         return f'({self.origin}, {self.size})'

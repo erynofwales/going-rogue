@@ -89,3 +89,7 @@ class Map:
 
         size = self.size
         console.tiles_rgb[0:size.width, 0:size.height] = self.tiles["dark"]
+
+class RectangularRoom:
+    def __init__(self, bounds: Rect):
+        self.bounds = bounds

@@ -30,10 +30,11 @@ class Engine:
 
         first_room = self.map.rooms[0]
         player_start_position = first_room.midpoint
-        self.player = Entity('@', tcod.white, x=player_start_position.x, y=player_start_position.y)
+        self.player = Entity('@', position=player_start_position, fg=tcod.white)
         self.entities: AbstractSet[Entity] = {self.player}
         for _ in range(self.rng.randint(1, 15)):
-            self.entities.add(Entity('@', color=tcod.yellow, x=self.rng.randint(0, map_size.width), y=self.rng.randint(0, map_size.height)))
+            position = Point(self.rng.randint(0, map_size.width), self.rng.randint(0, map_size.height))
+            self.entities.add(Entity('@', position=position, fg=tcod.yellow))
 
     def handle_event(self, event: tcod.event.Event):
         action = self.event_handler.dispatch(event)

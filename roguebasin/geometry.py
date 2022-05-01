@@ -11,14 +11,22 @@ class Point:
         self.y = y
 
     @overload
-    def __add__(self, other: Vector) -> Point:
+    def __add__(self, other: 'Vector') -> 'Point':
         ...
 
-    @overload
-    def __add__(self, other) -> Point:
+    def __add__(self, other) -> 'Point':
         if not isinstance(other, Vector):
             raise TypeError('Only Vector can be added to a Point')
         return Point(self.x + other.dx, self.y + other.dy)
+
+    @overload
+    def __eq__(self, other: 'Point') -> bool:
+        ...
+
+    def __eq__(self, other):
+        if not isinstance(other, Point):
+            raise TypeError('Points can only be compared to other Points')
+        return self.x == other.x and self.y == other.y
 
     def __str__(self):
         return f'(x:{self.x}, y:{self.y})'

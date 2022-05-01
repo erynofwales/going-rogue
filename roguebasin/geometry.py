@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
+from typing import Tuple
+
 class Point:
     __slots__ = ('x', 'y')
 
@@ -34,6 +36,10 @@ class Size:
         self.width = width
         self.height = height
 
+    @property
+    def as_tuple(self) -> Tuple[int, int]:
+        return (self.width, self.height)
+
     def __str__(self):
         return f'(w:{self.width}, h:{self.height})'
 
@@ -59,12 +65,24 @@ class Rect:
         return self.origin.y
 
     @property
+    def mid_x(self) -> int:
+        return int(self.origin.x + self.size.width / 2)
+
+    @property
+    def mid_y(self) -> int:
+        return int(self.origin.y + self.size.height / 2)
+
+    @property
     def max_x(self) -> int:
         return self.origin.x + self.size.width - 1
 
     @property
     def max_y(self) -> int:
         return self.origin.y + self.size.height - 1
+
+    @property
+    def midpoint(self) -> Point:
+        return Point(self.mid_x, self.mid_y)
 
     def __str__(self):
         return f'({self.origin}, {self.size})'

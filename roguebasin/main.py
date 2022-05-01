@@ -10,8 +10,11 @@ import logging
 import os.path
 import random
 import tcod
+from .events import EventHandler, ExitAction, MovePlayerAction, RegenerateRoomsAction
+from .geometry import Point, Rect, Size, Vector
 from .object import Object
 from .tile import Tile
+from typing import List
 
 CONSOLE_WIDTH, CONSOLE_HEIGHT = 80, 50
 FONT = 'terminal16x16_gs_ro.png'
@@ -78,8 +81,14 @@ def main(argv):
 
     objects = [PLAYER, NPC]
 
+    event_handler = EventHandler()
+
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
         while True:
+            #
+            # Draw
+            #
+
             console.clear()
 
             for x in range(MAP_WIDTH):
@@ -95,35 +104,24 @@ def main(argv):
 
             context.present(console)
 
+            #
+            # Handle Events
+            #
+
             for event in tcod.event.wait():
-                # Sets tile coordinates for mouse events.
-                context.convert_event(event)
+                action = event_handler.dispatch(event)
 
-                handled = True
-                if isinstance(event, tcod.event.Quit):
+                if not action:
+                    continue
+
+                if isinstance(action, MovePlayerAction):
+                    new_player_position = Point(max(0, min(CONSOLE_WIDTH, PLAYER.x + action.direction[0])),
+                                                max(0, min(CONSOLE_HEIGHT, PLAYER.y + action.direction[1])))
+                    can_move_to_level_position = not level[new_player_position.x][new_player_position.y].blocks_movement
+                    overlaps_an_object = any(new_player_position.x == obj.x and new_player_position.y == obj.y for obj in objects)
+                    if can_move_to_level_position and not overlaps_an_object:
+                        LOG.debug(f'Moving player to {new_player_position}; can_move:{can_move_to_level_position} overlaps:{overlaps_an_object}')
+                        PLAYER.move_to(new_player_position)
+
+                if isinstance(action, ExitAction):
                     raise SystemExit()
-                elif isinstance(event, tcod.event.KeyDown):
-                    sym = event.sym
-                    new_position_x, new_position_y = PLAYER.x, PLAYER.y
-                    if sym == tcod.event.KeySym.h:
-                        new_position_x = max([0, PLAYER.x - 1])
-                    elif sym == tcod.event.KeySym.j:
-                        new_position_y = min([CONSOLE_HEIGHT - 1, PLAYER.y + 1])
-                    elif sym == tcod.event.KeySym.k:
-                        new_position_y = max([0, PLAYER.y - 1])
-                    elif sym == tcod.event.KeySym.l:
-                        new_position_x = min([CONSOLE_WIDTH - 1, PLAYER.x + 1])
-                    else:
-                        handled = False
-
-                    if handled:
-                        can_move_to_level_position = not level[new_position_x][new_position_y].blocks_movement
-                        overlaps_an_object = any(new_position_x == obj.x and new_position_y == obj.y for obj in objects)
-                        if can_move_to_level_position and not overlaps_an_object:
-                            LOG.debug(f'Moving player to ({new_position_x}, {new_position_y}); can_move:{can_move_to_level_position} overlaps:{overlaps_an_object}')
-                            PLAYER.move_to(new_position_x, new_position_y)
-                else:
-                    handled = False
-
-                if not handled:
-                    LOG.info(f'Unhandled event: {event}')

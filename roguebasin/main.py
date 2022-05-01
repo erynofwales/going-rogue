@@ -10,6 +10,7 @@ import logging
 import os.path
 import random
 import tcod
+from .engine import Configuration, Engine
 from .events import EventHandler, ExitAction, MovePlayerAction, RegenerateRoomsAction
 from .geometry import Point, Rect, Size, Vector
 from .object import Object
@@ -75,83 +76,15 @@ def main(argv):
 
     level = [[Tile(False) for y in range(MAP_HEIGHT)] for x in range(MAP_WIDTH)]
 
-    random = tcod.random.Random()
-    partitions, rooms = generate_rooms(random)
-
-    objects = [PLAYER, NPC]
-
     event_handler = EventHandler()
+    configuration = Configuration(map_size=Size(MAP_WIDTH, MAP_HEIGHT))
+    engine = Engine(event_handler, configuration)
 
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
         while True:
-            #
-            # Draw
-            #
-
             console.clear()
-
-            for part in partitions:
-                console.draw_frame(part.x, part.y, part.width, part.height, bg=(40, 40, 80), clear=True, decoration="···· ····")
-
-            for room in rooms:
-                console.draw_frame(room.origin.x, room.origin.y, room.size.width, room.size.height,
-                    fg=(255, 255, 255), bg=(80, 40, 40), clear=True)
-
-            for obj in objects:
-                obj.print(console)
-
+            engine.print_to_console(console)
             context.present(console)
 
-            #
-            # Handle Events
-            #
-
             for event in tcod.event.wait():
-                action = event_handler.dispatch(event)
-
-                if not action:
-                    continue
-
-                if isinstance(action, MovePlayerAction):
-                    new_player_position = Point(max(0, min(CONSOLE_WIDTH, PLAYER.x + action.direction[0])),
-                                                max(0, min(CONSOLE_HEIGHT, PLAYER.y + action.direction[1])))
-                    can_move_to_level_position = not level[new_player_position.x][new_player_position.y].blocks_movement
-                    overlaps_an_object = any(new_player_position.x == obj.x and new_player_position.y == obj.y for obj in objects)
-                    if can_move_to_level_position and not overlaps_an_object:
-                        LOG.debug(f'Moving player to {new_player_position}; can_move:{can_move_to_level_position} overlaps:{overlaps_an_object}')
-                        PLAYER.move_to(new_player_position)
-
-                if isinstance(action, ExitAction):
-                    raise SystemExit()
-
-                if isinstance(action, RegenerateRoomsAction):
-                    partitions, rooms = generate_rooms(random)
-
-def generate_rooms(random: tcod.random.Random) -> List[Rect]:
-    bsp = tcod.bsp.BSP(x=0, y=0, width=MAP_WIDTH, height=MAP_HEIGHT)
-    bsp.split_recursive(
-        depth=4,
-        min_width=8, min_height=8,
-        max_horizontal_ratio=1.5, max_vertical_ratio=1.5)
-
-    partitions = []
-    rooms = []
-    indent = 0
-    for node in bsp.pre_order():
-        if node.children:
-            LOG.debug(f'{" " * indent}{Rect(node.x, node.y, node.width, node.height)}')
-            indent += 2
-            # TODO: Connect the two child rooms
-        else:
-            LOG.debug(f'{" " * indent}{Rect(node.x, node.y, node.width, node.height)} (room)')
-            size = Size(random.randint(5, min(15, max(5, node.width - 2))),
-                        random.randint(5, min(15, max(5, node.height - 2))))
-            origin = Point(node.x + random.randint(1, max(1, node.width - size.width - 1)),
-                           node.y + random.randint(1, max(1, node.height - size.height - 1)))
-            room = Rect(origin.x, origin.y, size.width, size.height)
-            LOG.debug(f'{" " * indent}`-> {room}')
-            partitions.append(node)
-            rooms.append(room)
-            indent -= 2
-
-    return partitions, rooms
+                engine.handle_event(event)

@@ -39,5 +39,5 @@ class Object:
         self.__x = point.x
         self.__y = point.y
 
-    def print(self, console: tcod.Console) -> None:
+    def print_to_console(self, console: tcod.Console) -> None:
         console.print(x=self.__x, y=self.__y, string=self.__symbol, fg=self.__color)

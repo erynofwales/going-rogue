@@ -43,9 +43,6 @@ class Engine:
 
         action.perform(self, self.player)
 
-        # if isinstance(action, RegenerateRoomsAction):
-        #     partitions, rooms = generate_rooms(random)
-
     def print_to_console(self, console):
         self.map.print_to_console(console)
 

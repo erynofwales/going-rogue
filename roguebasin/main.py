@@ -11,11 +11,9 @@ import os.path
 import random
 import tcod
 from .engine import Configuration, Engine
-from .events import EventHandler, ExitAction, MovePlayerAction, RegenerateRoomsAction
-from .geometry import Point, Rect, Size, Vector
+from .events import EventHandler
+from .geometry import Size
 from .object import Object
-from .tile import Tile
-from typing import List
 
 CONSOLE_WIDTH, CONSOLE_HEIGHT = 80, 50
 FONT = 'terminal16x16_gs_ro.png'
@@ -73,8 +71,6 @@ def main(argv):
 
     tileset = tcod.tileset.load_tilesheet(font, 16, 16, tcod.tileset.CHARMAP_CP437)
     console = tcod.Console(CONSOLE_WIDTH, CONSOLE_HEIGHT, order='F')
-
-    level = [[Tile(False) for y in range(MAP_HEIGHT)] for x in range(MAP_WIDTH)]
 
     event_handler = EventHandler()
     configuration = Configuration(map_size=Size(MAP_WIDTH, MAP_HEIGHT))

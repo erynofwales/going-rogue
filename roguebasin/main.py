@@ -23,8 +23,8 @@ LOG = logging.getLogger('roguebasin')
 
 MAP_WIDTH, MAP_HEIGHT = 80, 45
 
-PLAYER = Object('@', x=CONSOLE_WIDTH // 2, y=CONSOLE_HEIGHT // 2)
-NPC = Object('@', color=tcod.yellow, x=random.randint(0, CONSOLE_WIDTH), y=random.randint(0, CONSOLE_HEIGHT))
+PLAYER = Object('@', x=MAP_WIDTH // 2, y=MAP_HEIGHT // 2)
+NPC = Object('@', color=tcod.yellow, x=random.randint(0, MAP_WIDTH), y=random.randint(0, MAP_HEIGHT))
 
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)

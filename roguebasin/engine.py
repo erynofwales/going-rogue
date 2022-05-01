@@ -28,9 +28,10 @@ class Engine:
         map_size = configuration.map_size
         self.map = Map(map_size)
 
-        first_room = self.map.rooms[0]
-        player_start_position = first_room.midpoint
+        first_room = self.map.generator.rooms[0]
+        player_start_position = first_room.center
         self.player = Entity('@', position=player_start_position, fg=tcod.white)
+
         self.entities: AbstractSet[Entity] = {self.player}
         for _ in range(self.rng.randint(1, 15)):
             position = Point(self.rng.randint(0, map_size.width), self.rng.randint(0, map_size.height))

@@ -74,10 +74,9 @@ def main(argv):
     console = tcod.Console(CONSOLE_WIDTH, CONSOLE_HEIGHT, order='F')
 
     level = [[Tile(False) for y in range(MAP_HEIGHT)] for x in range(MAP_WIDTH)]
-    level[30][22].blocks_movement = True
-    level[30][22].blocks_sight = True
-    level[45][22].blocks_movement = True
-    level[45][22].blocks_sight = True
+
+    random = tcod.random.Random()
+    partitions, rooms = generate_rooms(random)
 
     objects = [PLAYER, NPC]
 
@@ -91,13 +90,12 @@ def main(argv):
 
             console.clear()
 
-            for x in range(MAP_WIDTH):
-                for y in range(MAP_HEIGHT):
-                    blocked = level[x][y].blocks_movement
-                    if blocked:
-                        console.print(x, y, '#', fg=Tile.Color.WALL)
-                    else:
-                        console.print(x, y, '.', fg=Tile.Color.GROUND)
+            for part in partitions:
+                console.draw_frame(part.x, part.y, part.width, part.height, bg=(40, 40, 80), clear=True, decoration="···· ····")
+
+            for room in rooms:
+                console.draw_frame(room.origin.x, room.origin.y, room.size.width, room.size.height,
+                    fg=(255, 255, 255), bg=(80, 40, 40), clear=True)
 
             for obj in objects:
                 obj.print(console)
@@ -125,3 +123,35 @@ def main(argv):
 
                 if isinstance(action, ExitAction):
                     raise SystemExit()
+
+                if isinstance(action, RegenerateRoomsAction):
+                    partitions, rooms = generate_rooms(random)
+
+def generate_rooms(random: tcod.random.Random) -> List[Rect]:
+    bsp = tcod.bsp.BSP(x=0, y=0, width=MAP_WIDTH, height=MAP_HEIGHT)
+    bsp.split_recursive(
+        depth=4,
+        min_width=8, min_height=8,
+        max_horizontal_ratio=1.5, max_vertical_ratio=1.5)
+
+    partitions = []
+    rooms = []
+    indent = 0
+    for node in bsp.pre_order():
+        if node.children:
+            LOG.debug(f'{" " * indent}{Rect(node.x, node.y, node.width, node.height)}')
+            indent += 2
+            # TODO: Connect the two child rooms
+        else:
+            LOG.debug(f'{" " * indent}{Rect(node.x, node.y, node.width, node.height)} (room)')
+            size = Size(random.randint(5, min(15, max(5, node.width - 2))),
+                        random.randint(5, min(15, max(5, node.height - 2))))
+            origin = Point(node.x + random.randint(1, max(1, node.width - size.width - 1)),
+                           node.y + random.randint(1, max(1, node.height - size.height - 1)))
+            room = Rect(origin.x, origin.y, size.width, size.height)
+            LOG.debug(f'{" " * indent}`-> {room}')
+            partitions.append(node)
+            rooms.append(room)
+            indent -= 2
+
+    return partitions, rooms

@@ -3,6 +3,7 @@
 
 import logging
 import numpy as np
+import random
 import tcod
 from .geometry import Point, Rect, Size
 from .tile import Floor, Wall
@@ -79,14 +80,38 @@ class RoomsAndCorridorsGenerator(MapGenerator):
         rooms: List['RectangularRoom'] = []
         # For nicer debug logging
         indent = 0
-        for node in bsp.pre_order():
+
+        for node in bsp.post_order():
             node_bounds = self.__rect_from_bsp_node(node)
 
             if node.children:
-                if LOG.getEffectiveLevel() == logging.DEBUG:
-                    LOG.debug(f'{" " * indent}{node_bounds}')
-                    indent += 2
-                # TODO: Connect the two child rooms
+                LOG.debug(f'{" " * indent}{node_bounds}')
+
+                left_node_bounds = self.__rect_from_bsp_node(node.children[0])
+                right_node_bounds = self.__rect_from_bsp_node(node.children[1])
+
+                LOG.debug(f'{" " * indent} left:{node.children[0]}, {left_node_bounds}')
+                LOG.debug(f'{" " * indent}right:{node.children[1]}, {right_node_bounds}')
+
+                start_point = left_node_bounds.midpoint
+                end_point = right_node_bounds.midpoint
+
+                # Randomly choose whether to move horizontally then vertically or vice versa
+                if random.random() < 0.5:
+                    corner = Point(end_point.x, start_point.y)
+                else:
+                    corner = Point(start_point.x, end_point.y)
+
+                LOG.debug(f'{" " * indent}Digging tunnel between {start_point} and {end_point} with corner {corner}')
+                LOG.debug(f'{" " * indent}`-> start:{left_node_bounds}')
+                LOG.debug(f'{" " * indent}`->   end:{right_node_bounds}')
+
+                for x, y in tcod.los.bresenham(tuple(start_point), tuple(corner)).tolist():
+                    tiles[x, y] = Floor
+                for x, y in tcod.los.bresenham(tuple(corner), tuple(end_point)).tolist():
+                    tiles[x, y] = Floor
+
+                indent += 2
             else:
                 LOG.debug(f'{" " * indent}{node_bounds} (room) {node}')
 
@@ -101,8 +126,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                 room = RectangularRoom(bounds)
                 rooms.append(room)
 
-                if LOG.getEffectiveLevel() == logging.DEBUG:
-                    indent -= 2
+                indent -= 2
 
         self.rooms = rooms
 

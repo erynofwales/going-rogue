@@ -18,6 +18,10 @@ class Point:
             raise TypeError('Only Vector can be added to a Point')
         return Point(self.x + other.dx, self.y + other.dy)
 
+    def __iter__(self):
+        yield self.x
+        yield self.y
+
     def __str__(self):
         return f'(x:{self.x}, y:{self.y})'
 
@@ -26,6 +30,10 @@ class Vector:
     dx: int = 0
     dy: int = 0
 
+    def __iter__(self):
+        yield self.dx
+        yield self.dy
+
     def __str__(self):
         return f'(δx:{self.x}, δy:{self.y})'
 
@@ -33,6 +41,10 @@ class Vector:
 class Size:
     width: int = 0
     height: int = 0
+
+    def __iter__(self):
+        yield self.width
+        yield self.height
 
     def __str__(self):
         return f'(w:{self.width}, h:{self.height})'
@@ -76,6 +88,9 @@ class Rect:
     def midpoint(self) -> Point:
         return Point(self.mid_x, self.mid_y)
 
+    def __iter__(self):
+        yield tuple(self.origin)
+        yield tuple(self.size)
 
     def __str__(self):
         return f'[{self.origin}, {self.size}]'

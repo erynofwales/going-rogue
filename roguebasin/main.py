@@ -23,7 +23,7 @@ FONT = 'terminal16x16_gs_ro.png'
 
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
-    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--debug', action='store_true', default=True)
     args = parser.parse_args(argv)
     return args
 

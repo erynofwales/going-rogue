@@ -55,7 +55,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
         super().__init__(size=size)
         self.configuration = config if config else RoomsAndCorridorsGenerator.DefaultConfiguration
 
-        self.rng = tcod.random.Random()
+        self.rng: tcod.random.Random = tcod.random.Random()
 
         self.rooms: List['RectanularRoom'] = []
         self.tiles: Optional[np.ndarray] = None
@@ -73,18 +73,22 @@ class RoomsAndCorridorsGenerator(MapGenerator):
             min_width=minimum_room_size.width, min_height=minimum_room_size.height,
             max_horizontal_ratio=1.5, max_vertical_ratio=1.5)
 
+        tiles = np.full(tuple(self.size), fill_value=Wall, order='F')
+
         # Generate the rooms
-        rooms: List[RectangularRoom] = []
+        rooms: List['RectangularRoom'] = []
         # For nicer debug logging
         indent = 0
         for node in bsp.pre_order():
+            node_bounds = self.__rect_from_bsp_node(node)
+
             if node.children:
                 if LOG.getEffectiveLevel() == logging.DEBUG:
-                    LOG.debug(f'{" " * indent}{Rect(node.x, node.y, node.width, node.height)}')
+                    LOG.debug(f'{" " * indent}{node_bounds}')
                     indent += 2
                 # TODO: Connect the two child rooms
             else:
-                LOG.debug(f'{" " * indent}{Rect(node.x, node.y, node.width, node.height)} (room)')
+                LOG.debug(f'{" " * indent}{node_bounds} (room) {node}')
 
                 size = Size(self.rng.randint(5, min(15, max(5, node.width - 2))),
                             self.rng.randint(5, min(15, max(5, node.height - 2))))
@@ -102,7 +106,6 @@ class RoomsAndCorridorsGenerator(MapGenerator):
 
         self.rooms = rooms
 
-        tiles = np.full(self.size.as_tuple, fill_value=Wall, order='F')
         for room in rooms:
             bounds = room.bounds
             tiles[bounds.min_x:bounds.max_x, bounds.min_y:bounds.max_y] = Floor

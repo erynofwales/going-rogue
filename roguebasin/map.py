@@ -111,6 +111,13 @@ class RoomsAndCorridorsGenerator(MapGenerator):
 
         return tiles
 
+    def generate_tunnel(self, start_room_bounds: Rect, end_room_bounds: Rect):
+        pass
+
+    def __rect_from_bsp_node(self, node: tcod.bsp.BSP) -> Rect:
+        return Rect(Point(node.x, node.y), Size(node.width, node.height))
+
+
 class RectangularRoom:
     def __init__(self, bounds: Rect):
         self.bounds = bounds
@@ -118,3 +125,6 @@ class RectangularRoom:
     @property
     def center(self) -> Point:
         return self.bounds.midpoint
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({self.bounds})'

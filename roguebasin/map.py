@@ -90,7 +90,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                             self.rng.randint(5, min(15, max(5, node.height - 2))))
                 origin = Point(node.x + self.rng.randint(1, max(1, node.width - size.width - 1)),
                                node.y + self.rng.randint(1, max(1, node.height - size.height - 1)))
-                bounds = Rect(origin.x, origin.y, size.width, size.height)
+                bounds = Rect(origin, size)
 
                 LOG.debug(f'{" " * indent}`-> {bounds}')
 

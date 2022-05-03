@@ -1,4 +1,6 @@
-# Experiments with `libtcod`
+# Going Rogue
+
+An experiment building a Roguelike with libtcod and Python
 
 `libtcod` is a library that provides a bunch of useful routines for building
 Roguelikes. There are C++ and Python interfaces.

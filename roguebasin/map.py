@@ -119,8 +119,13 @@ class RoomsAndCorridorsGenerator(MapGenerator):
             else:
                 LOG.debug(f'{" " * indent}{node_bounds} (room) {node}')
 
-                size = Size(self.rng.randint(5, min(15, max(5, node.width - 2))),
-                            self.rng.randint(5, min(15, max(5, node.height - 2))))
+                # Generate a room size between minimum_room_size and maximum_room_size. The minimum value is
+                # straight-forward, but the maximum value needs to be clamped between minimum_room_size and the size of
+                # the node.
+                width_range = (minimum_room_size.width, min(maximum_room_size.width, max(minimum_room_size.width, node.width - 2)))
+                height_range = (minimum_room_size.height, min(maximum_room_size.height, max(minimum_room_size.height, node.height - 2)))
+
+                size = Size(self.rng.randint(*width_range), self.rng.randint(*height_range))
                 origin = Point(node.x + self.rng.randint(1, max(1, node.width - size.width - 1)),
                                node.y + self.rng.randint(1, max(1, node.height - size.height - 1)))
                 bounds = Rect(origin, size)

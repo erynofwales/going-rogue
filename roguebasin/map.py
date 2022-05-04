@@ -45,11 +45,13 @@ class RoomsAndCorridorsGenerator(MapGenerator):
     '''Generate a rooms-and-corridors style map with BSP.'''
 
     class Configuration:
-        def __init__(self, min_room_size: Size):
+        def __init__(self, min_room_size: Size, max_room_size: Size):
             self.minimum_room_size = min_room_size
+            self.maximum_room_size = max_room_size
 
     DefaultConfiguration = Configuration(
-        min_room_size=Size(8, 8)
+        min_room_size=Size(5, 5),
+        max_room_size=Size(15, 15),
     )
 
     def __init__(self, *, size: Size, config: Optional[Configuration] = None):
@@ -66,12 +68,14 @@ class RoomsAndCorridorsGenerator(MapGenerator):
             return self.tiles
 
         minimum_room_size = self.configuration.minimum_room_size
+        maximum_room_size = self.configuration.maximum_room_size
 
         # Recursively divide the map into squares of various sizes to place rooms in.
         bsp = tcod.bsp.BSP(x=0, y=0, width=self.size.width, height=self.size.height)
         bsp.split_recursive(
             depth=4,
-            min_width=minimum_room_size.width, min_height=minimum_room_size.height,
+            # Add 2 to the minimum width and height to account for walls
+            min_width=minimum_room_size.width + 2, min_height=minimum_room_size.height + 2,
             max_horizontal_ratio=1.5, max_vertical_ratio=1.5)
 
         tiles = np.full(tuple(self.size), fill_value=Wall, order='F')

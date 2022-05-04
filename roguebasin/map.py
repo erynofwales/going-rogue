@@ -7,6 +7,7 @@ import random
 import tcod
 from .geometry import Direction, Point, Rect, Size
 from .tile import Empty, Floor, Wall
+from dataclasses import dataclass
 from typing import Iterator, List, Optional
 
 LOG = logging.getLogger('map')
@@ -52,14 +53,14 @@ class MapGenerator:
 class RoomsAndCorridorsGenerator(MapGenerator):
     '''Generate a rooms-and-corridors style map with BSP.'''
 
+    @dataclass
     class Configuration:
-        def __init__(self, min_room_size: Size, max_room_size: Size):
-            self.minimum_room_size = min_room_size
-            self.maximum_room_size = max_room_size
+        minimum_room_size: Size
+        maximum_room_size: Size
 
     DefaultConfiguration = Configuration(
-        min_room_size=Size(5, 5),
-        max_room_size=Size(15, 15),
+        minimum_room_size=Size(5, 5),
+        maximum_room_size=Size(15, 15),
     )
 
     def __init__(self, *, size: Size, config: Optional[Configuration] = None):

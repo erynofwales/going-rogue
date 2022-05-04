@@ -5,9 +5,9 @@ import logging
 import numpy as np
 import random
 import tcod
-from .geometry import Point, Rect, Size
+from .geometry import Direction, Point, Rect, Size
 from .tile import Empty, Floor, Wall
-from typing import List, Optional
+from typing import Iterator, List, Optional
 
 LOG = logging.getLogger('map')
 
@@ -93,20 +93,25 @@ class RoomsAndCorridorsGenerator(MapGenerator):
         # For nicer debug logging
         indent = 0
 
+        room_attrname = f'{__class__.__name__}.room'
+
         for node in bsp.post_order():
             node_bounds = self.__rect_from_bsp_node(node)
 
             if node.children:
                 LOG.debug(f'{" " * indent}{node_bounds}')
 
-                left_node_bounds = self.__rect_from_bsp_node(node.children[0])
-                right_node_bounds = self.__rect_from_bsp_node(node.children[1])
+                left_room: RectangularRoom = getattr(node.children[0], room_attrname)
+                right_room: RectangularRoom = getattr(node.children[1], room_attrname)
 
-                LOG.debug(f'{" " * indent} left:{node.children[0]}, {left_node_bounds}')
-                LOG.debug(f'{" " * indent}right:{node.children[1]}, {right_node_bounds}')
+                left_room_bounds = left_room.bounds
+                right_room_bounds = right_room.bounds
 
-                start_point = left_node_bounds.midpoint
-                end_point = right_node_bounds.midpoint
+                LOG.debug(f'{" " * indent} left:{node.children[0]}, {left_room_bounds}')
+                LOG.debug(f'{" " * indent}right:{node.children[1]}, {right_room_bounds}')
+
+                start_point = left_room_bounds.midpoint
+                end_point = right_room_bounds.midpoint
 
                 # Randomly choose whether to move horizontally then vertically or vice versa
                 if random.random() < 0.5:
@@ -115,8 +120,8 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                     corner = Point(start_point.x, end_point.y)
 
                 LOG.debug(f'{" " * indent}Digging tunnel between {start_point} and {end_point} with corner {corner}')
-                LOG.debug(f'{" " * indent}`-> start:{left_node_bounds}')
-                LOG.debug(f'{" " * indent}`->   end:{right_node_bounds}')
+                LOG.debug(f'{" " * indent}`-> start:{left_room_bounds}')
+                LOG.debug(f'{" " * indent}`->   end:{right_room_bounds}')
 
                 for x, y in tcod.los.bresenham(tuple(start_point), tuple(corner)).tolist():
                     tiles[x, y] = Floor
@@ -141,15 +146,58 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                 LOG.debug(f'{" " * indent}`-> {bounds}')
 
                 room = RectangularRoom(bounds)
+                setattr(node, room_attrname, room)
                 rooms.append(room)
 
+                if not hasattr(node.parent, room_attrname):
+                    setattr(node.parent, room_attrname, room)
+                elif random.random() < 0.5:
+                    setattr(node.parent, room_attrname, room)
+
                 indent -= 2
+
+            # Pass up a random child room so that parent nodes can connect subtrees to each other.
+            parent = node.parent
+            if parent:
+                node_room = getattr(node, room_attrname)
+                if not hasattr(node.parent, room_attrname):
+                    setattr(node.parent, room_attrname, node_room)
+                elif random.random() < 0.5:
+                    setattr(node.parent, room_attrname, node_room)
 
         self.rooms = rooms
 
         for room in rooms:
+            for wall_position in room.walls:
+                if tiles[wall_position.x, wall_position.y] != Floor:
+                    tiles[wall_position.x, wall_position.y] = Wall
+
             bounds = room.bounds
-            tiles[bounds.min_x:bounds.max_x, bounds.min_y:bounds.max_y] = Floor
+            # The range of a numpy array slice is [a, b).
+            floor_rect = bounds.inset_rect(top=1, right=1, bottom=1, left=1)
+            tiles[floor_rect.min_x:floor_rect.max_x + 1, floor_rect.min_y:floor_rect.max_y + 1] = Floor
+
+        for y in range(self.size.height):
+            for x in range(self.size.width):
+                pos = Point(x, y)
+                if tiles[x, y] != Floor:
+                    continue
+
+                neighbors = [
+                    pos + Direction.North,
+                    pos + Direction.NorthEast,
+                    pos + Direction.East,
+                    pos + Direction.SouthEast,
+                    pos + Direction.South,
+                    pos + Direction.SouthWest,
+                    pos + Direction.West,
+                    pos + Direction.NorthWest,
+                ]
+
+                for neighbor in neighbors:
+                    if tiles[neighbor.x, neighbor.y] != Empty:
+                        continue
+                    tiles[neighbor.x, neighbor.y] = Wall
 
         self.tiles = tiles
 
@@ -169,6 +217,22 @@ class RectangularRoom:
     @property
     def center(self) -> Point:
         return self.bounds.midpoint
+
+    @property
+    def floor_bounds(self) -> Rect:
+        return self.bounds.inset_rect(top=1, right=1, bottom=1, left=1)
+
+    @property
+    def walls(self) -> Iterator[Point]:
+        bounds = self.bounds
+        min_y = bounds.min_y
+        max_y = bounds.max_y
+        min_x = bounds.min_x
+        max_x = bounds.max_x
+        for y in range(min_y, max_y + 1):
+            for x in range(min_x, max_x + 1):
+                if y == min_y or y == max_y or x == min_x or x == max_x:
+                    yield Point(x, y)
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.bounds})'

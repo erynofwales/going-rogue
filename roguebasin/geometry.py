@@ -98,6 +98,15 @@ class Rect:
     def midpoint(self) -> Point:
         return Point(self.mid_x, self.mid_y)
 
+    def inset_rect(self, top: int = 0, right: int = 0, bottom: int = 0, left: int = 0) -> 'Rect':
+        '''
+        Return a new Rect inset from this rect by the specified values. Arguments are listed in clockwise order around
+        the permeter. This method doesn't do any validation or transformation of the returned Rect to make sure it's
+        valid.
+        '''
+        return Rect(Point(self.origin.x + left, self.origin.y + top),
+                    Size(self.size.width - right - left, self.size.height - top - bottom))
+
     def __iter__(self):
         yield tuple(self.origin)
         yield tuple(self.size)

@@ -6,7 +6,7 @@ import numpy as np
 import random
 import tcod
 from .geometry import Direction, Point, Rect, Size
-from .tile import Empty, Floor, Wall
+from .tile import Empty, Floor, Shroud, Wall
 from dataclasses import dataclass
 from typing import Iterator, List, Optional
 
@@ -18,6 +18,11 @@ class Map:
 
         self.generator = RoomsAndCorridorsGenerator(size=size)
         self.tiles = self.generator.generate()
+
+        # Map tiles that are currently visible to the player
+        self.visible = np.full(tuple(self.size), fill_value=False, order='F')
+        # Map tiles that the player has explored
+        self.explored = np.full(tuple(self.size), fill_value=False, order='F')
 
     def random_walkable_position(self) -> Point:
         # TODO: Include hallways
@@ -34,8 +39,15 @@ class Map:
         return self.tiles[point.x, point.y]['walkable']
 
     def print_to_console(self, console: tcod.Console) -> None:
+        '''Render the map to the console.'''
         size = self.size
-        console.tiles_rgb[0:size.width, 0:size.height] = self.tiles["dark"]
+
+        # If a tile is in the visible array, draw it with the "light" color. If it's not, but it's in the explored
+        # array, draw it with the "dark" color. Otherwise, draw it as Empty.
+        console.tiles_rgb[0:size.width, 0:size.height] = np.select(
+            condlist=[self.visible, self.explored],
+            choicelist=[self.tiles['light'], self.tiles['dark']],
+            default=Shroud)
 
 class MapGenerator:
     def __init__(self, *, size: Size):

@@ -37,6 +37,8 @@ class Engine:
             position = self.map.random_walkable_position()
             self.entities.add(Entity('@', position=position, fg=tcod.yellow))
 
+        self.update_field_of_view()
+
     def handle_event(self, event: tcod.event.Event):
         action = self.event_handler.dispatch(event)
 
@@ -45,8 +47,23 @@ class Engine:
 
         action.perform(self, self.player)
 
+        self.update_field_of_view()
+
     def print_to_console(self, console):
         self.map.print_to_console(console)
 
         for ent in self.entities:
+            # Only print entities that are in the field of view
+            if not self.map.visible[tuple(ent.position)]:
+                continue
             ent.print_to_console(console)
+
+    def update_field_of_view(self) -> None:
+        '''Compute visible area of the map based on the player's position and point of view.'''
+        self.map.visible[:] = tcod.map.compute_fov(
+            self.map.tiles['transparent'],
+            tuple(self.player.position),
+            radius=8)
+
+        # Visible tiles should be added to the explored list
+        self.map.explored |= self.map.visible

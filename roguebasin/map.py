@@ -6,7 +6,7 @@ import numpy as np
 import random
 import tcod
 from .geometry import Point, Rect, Size
-from .tile import Floor, Wall
+from .tile import Empty, Floor, Wall
 from typing import List, Optional
 
 LOG = logging.getLogger('map')
@@ -86,7 +86,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
             min_width=minimum_room_size.width + 2, min_height=minimum_room_size.height + 2,
             max_horizontal_ratio=1.5, max_vertical_ratio=1.5)
 
-        tiles = np.full(tuple(self.size), fill_value=Wall, order='F')
+        tiles = np.full(tuple(self.size), fill_value=Empty, order='F')
 
         # Generate the rooms
         rooms: List['RectangularRoom'] = []

@@ -37,6 +37,16 @@ class Vector:
     def __str__(self):
         return f'(δx:{self.x}, δy:{self.y})'
 
+class Direction:
+    North = Vector(0, -1)
+    NorthEast = Vector(1, -1)
+    East = Vector(1, 0)
+    SouthEast = Vector(1, 1)
+    South = Vector(0, 1)
+    SouthWest = Vector(-1, 1)
+    West = Vector(-1, 0)
+    NorthWest = Vector(-1, -1)
+
 @dataclass(frozen=True)
 class Size:
     width: int = 0

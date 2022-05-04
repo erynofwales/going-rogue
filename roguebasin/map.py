@@ -60,7 +60,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
 
         self.rng: tcod.random.Random = tcod.random.Random()
 
-        self.rooms: List['RectanularRoom'] = []
+        self.rooms: List['RectangularRoom'] = []
         self.tiles: Optional[np.ndarray] = None
 
     def generate(self) -> np.ndarray:

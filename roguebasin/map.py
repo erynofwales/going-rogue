@@ -18,6 +18,14 @@ class Map:
         self.generator = RoomsAndCorridorsGenerator(size=size)
         self.tiles = self.generator.generate()
 
+    def random_walkable_position(self) -> Point:
+        # TODO: Include hallways
+        random_room: RectangularRoom = random.choice(self.generator.rooms)
+        floor = random_room.floor_bounds
+        random_position_in_room = Point(random.randint(floor.min_x, floor.max_x),
+                                        random.randint(floor.min_y, floor.max_y))
+        return random_position_in_room
+
     def tile_is_in_bounds(self, point: Point) -> bool:
         return 0 <= point.x < self.size.width and 0 <= point.y < self.size.height
 

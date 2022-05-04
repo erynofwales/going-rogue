@@ -33,8 +33,8 @@ class Engine:
         self.player = Entity('@', position=player_start_position, fg=tcod.white)
 
         self.entities: AbstractSet[Entity] = {self.player}
-        for _ in range(self.rng.randint(1, 15)):
-            position = Point(self.rng.randint(0, map_size.width), self.rng.randint(0, map_size.height))
+        for _ in range(self.rng.randint(5, 15)):
+            position = self.map.random_walkable_position()
             self.entities.add(Entity('@', position=position, fg=tcod.yellow))
 
     def handle_event(self, event: tcod.event.Event):

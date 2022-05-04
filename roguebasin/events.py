@@ -15,7 +15,9 @@ class EventHandler(tcod.event.EventDispatch[Action]):
 
         sym = event.sym
 
-        if sym == tcod.event.KeySym.h:
+        if sym == tcod.event.KeySym.b:
+            action = MovePlayerAction(Direction.SouthWest)
+        elif sym == tcod.event.KeySym.h:
             action = MovePlayerAction(Direction.West)
         elif sym == tcod.event.KeySym.j:
             action = MovePlayerAction(Direction.South)
@@ -23,6 +25,12 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             action = MovePlayerAction(Direction.North)
         elif sym == tcod.event.KeySym.l:
             action = MovePlayerAction(Direction.East)
+        elif sym == tcod.event.KeySym.n:
+            action = MovePlayerAction(Direction.SouthEast)
+        elif sym == tcod.event.KeySym.u:
+            action = MovePlayerAction(Direction.NorthEast)
+        elif sym == tcod.event.KeySym.y:
+            action = MovePlayerAction(Direction.NorthWest)
         elif sym == tcod.event.KeySym.SPACE:
             action = RegenerateRoomsAction()
 

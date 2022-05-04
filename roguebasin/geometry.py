@@ -18,6 +18,10 @@ class Point:
             raise TypeError('Only Vector can be added to a Point')
         return Point(self.x + other.dx, self.y + other.dy)
 
+    def __iter__(self):
+        yield self.x
+        yield self.y
+
     def __str__(self):
         return f'(x:{self.x}, y:{self.y})'
 
@@ -26,13 +30,31 @@ class Vector:
     dx: int = 0
     dy: int = 0
 
+    def __iter__(self):
+        yield self.dx
+        yield self.dy
+
     def __str__(self):
         return f'(δx:{self.x}, δy:{self.y})'
+
+class Direction:
+    North = Vector(0, -1)
+    NorthEast = Vector(1, -1)
+    East = Vector(1, 0)
+    SouthEast = Vector(1, 1)
+    South = Vector(0, 1)
+    SouthWest = Vector(-1, 1)
+    West = Vector(-1, 0)
+    NorthWest = Vector(-1, -1)
 
 @dataclass(frozen=True)
 class Size:
     width: int = 0
     height: int = 0
+
+    def __iter__(self):
+        yield self.width
+        yield self.height
 
     def __str__(self):
         return f'(w:{self.width}, h:{self.height})'
@@ -76,6 +98,18 @@ class Rect:
     def midpoint(self) -> Point:
         return Point(self.mid_x, self.mid_y)
 
+    def inset_rect(self, top: int = 0, right: int = 0, bottom: int = 0, left: int = 0) -> 'Rect':
+        '''
+        Return a new Rect inset from this rect by the specified values. Arguments are listed in clockwise order around
+        the permeter. This method doesn't do any validation or transformation of the returned Rect to make sure it's
+        valid.
+        '''
+        return Rect(Point(self.origin.x + left, self.origin.y + top),
+                    Size(self.size.width - right - left, self.size.height - top - bottom))
+
+    def __iter__(self):
+        yield tuple(self.origin)
+        yield tuple(self.size)
 
     def __str__(self):
         return f'[{self.origin}, {self.size}]'

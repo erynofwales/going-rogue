@@ -2,7 +2,12 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import logging
-from .geometry import Vector
+from .geometry import Direction
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .engine import Engine
+    from .object import Entity
 
 LOG = logging.getLogger('events')
 
@@ -26,16 +31,6 @@ class RegenerateRoomsAction(Action):
         ...
 
 class MovePlayerAction(Action):
-    class Direction:
-        North = Vector(0, -1)
-        NorthEast = Vector(1, -1)
-        East = Vector(1, 0)
-        SouthEast = Vector(1, 1)
-        South = Vector(0, 1)
-        SouthWest = Vector(-1, 1)
-        West = Vector(-1, 0)
-        NorthWest = Vector(-1, -1)
-
     def __init__(self, direction: Direction):
         self.direction = direction
 

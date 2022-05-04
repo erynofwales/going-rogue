@@ -25,5 +25,6 @@ tile_datatype = np.dtype([
 def tile(*, walkable: int, transparent: int, dark: Tuple[int, Tuple[int, int, int], Tuple[int, int ,int]]) -> np.ndarray:
     return np.array((walkable, transparent, dark), dtype=tile_datatype)
 
+Empty = tile(walkable=False, transparent=False, dark=(ord(' '), (255, 255, 255), (0, 0, 0)))
 Floor = tile(walkable=True, transparent=True, dark=(ord(' '), (255, 255, 255), (50, 50, 150)))
 Wall = tile(walkable=False, transparent=False, dark=(ord(' '), (255, 255, 255), (0, 0, 150)))

@@ -49,6 +49,7 @@ class Engine:
         action.perform(self, self.player)
 
         directions = list(Direction.all())
+        moved_entities = [self.player]
 
         for ent in self.entities:
             if ent == self.player:
@@ -56,8 +57,10 @@ class Engine:
 
             while True:
                 new_position = ent.position + random.choice(directions)
-                if self.map.tile_is_walkable(new_position):
+                overlaps_with_previously_moved_entity = any(new_position == moved_ent.position for moved_ent in moved_entities)
+                if not overlaps_with_previously_moved_entity and self.map.tile_is_walkable(new_position):
                     ent.position = new_position
+                    moved_entities.append(ent)
                     break
 
         self.update_field_of_view()

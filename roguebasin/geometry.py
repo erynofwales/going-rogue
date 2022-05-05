@@ -2,7 +2,7 @@
 # Eryn Wells <eryn@erynwells.me>
 
 from dataclasses import dataclass
-from typing import Any, Tuple, overload
+from typing import Any, Iterator, overload
 
 @dataclass(frozen=True)
 class Point:
@@ -46,6 +46,17 @@ class Direction:
     SouthWest = Vector(-1, 1)
     West = Vector(-1, 0)
     NorthWest = Vector(-1, -1)
+
+    @classmethod
+    def all(cls) -> Iterator['Direction']:
+        yield Direction.North
+        yield Direction.NorthEast
+        yield Direction.East
+        yield Direction.SouthEast
+        yield Direction.South
+        yield Direction.SouthWest
+        yield Direction.West
+        yield Direction.NorthWest
 
 @dataclass(frozen=True)
 class Size:

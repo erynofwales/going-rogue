@@ -196,17 +196,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                 if tiles[x, y] != Floor:
                     continue
 
-                neighbors = [
-                    pos + Direction.North,
-                    pos + Direction.NorthEast,
-                    pos + Direction.East,
-                    pos + Direction.SouthEast,
-                    pos + Direction.South,
-                    pos + Direction.SouthWest,
-                    pos + Direction.West,
-                    pos + Direction.NorthWest,
-                ]
-
+                neighbors = (pos + direction for direction in Direction.all())
                 for neighbor in neighbors:
                     if tiles[neighbor.x, neighbor.y] != Empty:
                         continue

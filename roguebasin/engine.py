@@ -2,10 +2,11 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import logging
+import random
 import tcod
 from .actions import ExitAction, MovePlayerAction, RegenerateRoomsAction
 from .events import EventHandler
-from .geometry import Point, Size
+from .geometry import Direction, Point, Size
 from .map import Map
 from .object import Entity
 from typing import AbstractSet
@@ -46,6 +47,18 @@ class Engine:
             return
 
         action.perform(self, self.player)
+
+        directions = list(Direction.all())
+
+        for ent in self.entities:
+            if ent == self.player:
+                continue
+
+            while True:
+                new_position = ent.position + random.choice(directions)
+                if self.map.tile_is_walkable(new_position):
+                    ent.position = new_position
+                    break
 
         self.update_field_of_view()
 

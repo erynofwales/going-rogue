@@ -97,7 +97,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
             depth=4,
             # Add 2 to the minimum width and height to account for walls
             min_width=minimum_room_size.width + 2, min_height=minimum_room_size.height + 2,
-            max_horizontal_ratio=1.5, max_vertical_ratio=1.5)
+            max_horizontal_ratio=3, max_vertical_ratio=3)
 
         tiles = np.full(tuple(self.size), fill_value=Empty, order='F')
 

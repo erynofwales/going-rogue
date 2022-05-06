@@ -9,22 +9,22 @@ from .events import EventHandler
 from .geometry import Direction, Point, Size
 from .map import Map
 from .object import Entity
-from typing import AbstractSet
+from dataclasses import dataclass
+from typing import MutableSet
 
 LOG = logging.getLogger('engine')
 EVENT_LOG = logging.getLogger('events')
 
+@dataclass
 class Configuration:
-    def __init__(self, map_size: Size):
-        self.map_size = map_size
-        self.random_seed = None
+    map_size: Size
 
 class Engine:
     def __init__(self, event_handler: EventHandler, configuration: Configuration):
         self.event_handler = event_handler
         self.configuration = configuration
 
-        self.rng = tcod.random.Random(seed=configuration.random_seed)
+        self.rng = tcod.random.Random()
 
         map_size = configuration.map_size
         self.map = Map(map_size)
@@ -33,7 +33,7 @@ class Engine:
         player_start_position = first_room.center
         self.player = Entity('@', position=player_start_position, fg=tcod.white)
 
-        self.entities: AbstractSet[Entity] = {self.player}
+        self.entities: MutableSet[Entity] = {self.player}
         for _ in range(self.rng.randint(5, 15)):
             position = self.map.random_walkable_position()
             self.entities.add(Entity('@', position=position, fg=tcod.yellow))
@@ -49,7 +49,7 @@ class Engine:
         action.perform(self, self.player)
 
         directions = list(Direction.all())
-        moved_entities = [self.player]
+        moved_entities: MutableSet[Entity] = {self.player}
 
         for ent in self.entities:
             if ent == self.player:
@@ -60,7 +60,7 @@ class Engine:
                 overlaps_with_previously_moved_entity = any(new_position == moved_ent.position for moved_ent in moved_entities)
                 if not overlaps_with_previously_moved_entity and self.map.tile_is_walkable(new_position):
                     ent.position = new_position
-                    moved_entities.append(ent)
+                    moved_entities.add(ent)
                     break
 
         self.update_field_of_view()

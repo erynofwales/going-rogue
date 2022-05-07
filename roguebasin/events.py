@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
+
+'''Defines event handling mechanisms.'''
 
 from typing import Optional
 
@@ -9,6 +10,8 @@ from .actions import Action, ExitAction, RegenerateRoomsAction, BumpAction
 from .geometry import Direction
 
 class EventHandler(tcod.event.EventDispatch[Action]):
+    '''Handler of `tcod` events'''
+
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
         return ExitAction()
 

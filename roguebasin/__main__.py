@@ -78,7 +78,10 @@ def main(argv):
                 engine.handle_event(event)
 
 def run_until_exit():
-    '''Run the package's main() and call sys.exit when it finishes.'''
+    '''
+    Run main() and call sys.exit when it finishes. In practice, this function will never return. The game engine has
+    other mechanisms for exiting.
+    '''
     result = main(sys.argv)
     sys.exit(0 if not result else result)
 

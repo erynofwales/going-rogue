@@ -107,8 +107,6 @@ class RoomsAndCorridorsGenerator(MapGenerator):
 
         # Generate the rooms
         rooms: List['RectangularRoom'] = []
-        # For nicer debug logging
-        indent = 0
 
         room_attrname = f'{__class__.__name__}.room'
 
@@ -116,7 +114,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
             node_bounds = self.__rect_from_bsp_node(node)
 
             if node.children:
-                LOG.debug(f'{" " * indent}{node_bounds}')
+                LOG.debug(node_bounds)
 
                 left_room: RectangularRoom = getattr(node.children[0], room_attrname)
                 right_room: RectangularRoom = getattr(node.children[1], room_attrname)
@@ -124,8 +122,8 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                 left_room_bounds = left_room.bounds
                 right_room_bounds = right_room.bounds
 
-                LOG.debug(f'{" " * indent} left:{node.children[0]}, {left_room_bounds}')
-                LOG.debug(f'{" " * indent}right:{node.children[1]}, {right_room_bounds}')
+                LOG.debug(' left: %s, %s', node.children[0], left_room_bounds)
+                LOG.debug('right: %s, %s', node.children[1], right_room_bounds)
 
                 start_point = left_room_bounds.midpoint
                 end_point = right_room_bounds.midpoint
@@ -136,18 +134,16 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                 else:
                     corner = Point(start_point.x, end_point.y)
 
-                LOG.debug(f'{" " * indent}Digging tunnel between {start_point} and {end_point} with corner {corner}')
-                LOG.debug(f'{" " * indent}`-> start:{left_room_bounds}')
-                LOG.debug(f'{" " * indent}`->   end:{right_room_bounds}')
+                LOG.debug('Digging a tunnel between %s and %s with corner %s', start_point, end_point, corner)
+                LOG.debug('|-> start: %s', left_room_bounds)
+                LOG.debug('`->   end: %s', right_room_bounds)
 
                 for x, y in tcod.los.bresenham(tuple(start_point), tuple(corner)).tolist():
                     tiles[x, y] = Floor
                 for x, y in tcod.los.bresenham(tuple(corner), tuple(end_point)).tolist():
                     tiles[x, y] = Floor
-
-                indent += 2
             else:
-                LOG.debug(f'{" " * indent}{node_bounds} (room) {node}')
+                LOG.debug('%s (room) %s', node_bounds, node)
 
                 # Generate a room size between minimum_room_size and maximum_room_size. The minimum value is
                 # straight-forward, but the maximum value needs to be clamped between minimum_room_size and the size of
@@ -160,7 +156,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                                node.y + self.rng.randint(1, max(1, node.height - size.height - 1)))
                 bounds = Rect(origin, size)
 
-                LOG.debug(f'{" " * indent}`-> {bounds}')
+                LOG.debug('`-> %s', bounds)
 
                 room = RectangularRoom(bounds)
                 setattr(node, room_attrname, room)
@@ -170,8 +166,6 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                     setattr(node.parent, room_attrname, room)
                 elif random.random() < 0.5:
                     setattr(node.parent, room_attrname, room)
-
-                indent -= 2
 
             # Pass up a random child room so that parent nodes can connect subtrees to each other.
             parent = node.parent

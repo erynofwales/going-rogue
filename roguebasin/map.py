@@ -2,13 +2,15 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import logging
-import numpy as np
 import random
-import tcod
-from .geometry import Direction, Point, Rect, Size
-from .tile import Empty, Floor, Shroud, Wall
 from dataclasses import dataclass
 from typing import Iterator, List, Optional
+
+import numpy as np
+import tcod
+
+from .geometry import Direction, Point, Rect, Size
+from .tile import Empty, Floor, Shroud, Wall
 
 LOG = logging.getLogger('map')
 

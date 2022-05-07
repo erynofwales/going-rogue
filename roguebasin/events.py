@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
+from typing import Optional
+
 import tcod
+
 from .actions import Action, ExitAction, RegenerateRoomsAction, BumpAction
 from .geometry import Direction
-from typing import Optional
 
 class EventHandler(tcod.event.EventDispatch[Action]):
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:

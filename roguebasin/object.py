@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
-import tcod
-from .geometry import Point
 from typing import Optional, Tuple
+
+import tcod
+
+from .geometry import Point
 
 class Entity:
     '''A single-tile drawable entity with a symbol and position.'''

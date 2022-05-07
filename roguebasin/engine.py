@@ -25,6 +25,26 @@ class Configuration:
     map_size: Size
 
 class Engine:
+    '''The main game engine.
+
+    This class provides the event handling, map drawing, and maintains the list of entities.
+
+    Attributes
+    ----------
+    configuration : Configuration
+        Defines the basic configuration for the game
+    entities : MutableSet[Entity]
+        A set of all the entities on the current map, including the Hero
+    event_handler : EventHandler
+        An event handler object that can handle events from `tcod`
+    hero : Hero
+        The hero, the Entity controlled by the player
+    map : Map
+        A map of the current level
+    rng : tcod.random.Random
+        A random number generator
+    '''
+
     def __init__(self, event_handler: EventHandler, configuration: Configuration):
         self.event_handler = event_handler
         self.configuration = configuration
@@ -61,6 +81,7 @@ class Engine:
         self.update_field_of_view()
 
     def handle_event(self, event: tcod.event.Event):
+        '''Handle the specified event. Transform that event into an Action via an EventHandler and perform it.'''
         action = self.event_handler.dispatch(event)
 
         if not action:

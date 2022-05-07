@@ -1,15 +1,29 @@
-#!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
-import tcod
-from .geometry import Point
-from .object import Entity
 from dataclasses import dataclass
 from typing import Tuple
 
+from .geometry import Point
+from .object import Entity
+
 @dataclass(frozen=True)
 class Species:
-    '''A kind of monster.'''
+    '''A kind of monster.
+
+    Attributes
+    ----------
+    name : str
+        A friendly, user-visiable name for the monster
+    symbol : str
+        The symbol used to render the monster on the map
+    maximum_hit_points : int
+        The maximum number of hit points the monster can be spawned with
+    foreground_color : Tuple[int, int, int]
+        The foreground color used to render the monster on the map
+    background_color : Tuple[int, int, int], optional
+        The background color used to render the monster on the map; if none is given, the tile color specified by the
+        map will be used.
+    '''
     name: str
     symbol: str
     maximum_hit_points: int

@@ -41,6 +41,6 @@ class MovePlayerAction(Action):
         position_is_walkable = engine.map.tile_is_walkable(new_player_position)
         overlaps_another_entity = any(new_player_position == ent.position for ent in engine.entities if ent is not entity)
 
-        LOG.debug(f'Attempting to move player to {new_player_position} (in_bounds:{position_is_in_bounds} walkable:{position_is_walkable} overlaps:{overlaps_another_entity})')
         if position_is_in_bounds and position_is_walkable and not overlaps_another_entity:
+            LOG.info(f'Moving hero to {new_player_position} (in_bounds:{position_is_in_bounds} walkable:{position_is_walkable} overlaps:{overlaps_another_entity})')
             entity.position = new_player_position

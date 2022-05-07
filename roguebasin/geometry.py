@@ -1,11 +1,14 @@
-#!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
+
+'''A bunch of geometric primitives'''
 
 from dataclasses import dataclass
 from typing import Any, Iterator, overload
 
 @dataclass(frozen=True)
 class Point:
+    '''A two-dimensional point, with coordinates in X and Y axes'''
+
     x: int = 0
     y: int = 0
 
@@ -27,6 +30,8 @@ class Point:
 
 @dataclass(frozen=True)
 class Vector:
+    '''A two-dimensional vector, representing change in position in X and Y axes'''
+
     dx: int = 0
     dy: int = 0
 
@@ -38,6 +43,8 @@ class Vector:
         return f'(δx:{self.dx}, δy:{self.dy})'
 
 class Direction:
+    '''A collection of simple uint vectors in each of the eight major compass directions. This is a namespace, not a class.'''
+
     North = Vector(0, -1)
     NorthEast = Vector(1, -1)
     East = Vector(1, 0)
@@ -61,6 +68,8 @@ class Direction:
 
 @dataclass(frozen=True)
 class Size:
+    '''A two-dimensional size, representing size in X (width) and Y (height) axes'''
+
     width: int = 0
     height: int = 0
 
@@ -73,6 +82,8 @@ class Size:
 
 @dataclass(frozen=True)
 class Rect:
+    '''A two-dimensional rectangle, defined by an origin point and size'''
+
     origin: Point
     size: Size
 
@@ -108,13 +119,30 @@ class Rect:
 
     @property
     def midpoint(self) -> Point:
+        '''A Point in the middle of the Rect'''
         return Point(self.mid_x, self.mid_y)
 
     def inset_rect(self, top: int = 0, right: int = 0, bottom: int = 0, left: int = 0) -> 'Rect':
         '''
         Return a new Rect inset from this rect by the specified values. Arguments are listed in clockwise order around
-        the permeter. This method doesn't do any validation or transformation of the returned Rect to make sure it's
-        valid.
+        the permeter. This method doesn't validate the returned Rect, or transform it to a canonical representation with
+        the origin at the top-left.
+
+        Parameters
+        ----------
+        top : int
+            Amount to inset from the top
+        right : int
+            Amount to inset from the right
+        bottom : int
+            Amount to inset from the bottom
+        left : int
+            Amount to inset from the left
+
+        Returns
+        -------
+        Rect
+            A new Rect, inset from `self` by the given amount on each side
         '''
         return Rect(Point(self.origin.x + left, self.origin.y + top),
                     Size(self.size.width - right - left, self.size.height - top - bottom))

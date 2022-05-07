@@ -544,7 +544,9 @@ preferred-modules=
 
 # List of regular expressions of class ancestor names to ignore when counting
 # public methods (see R0903)
-exclude-too-few-public-methods=.*Action,ActionResult
+exclude-too-few-public-methods=.*Action,
+                               ActionResult,
+                               Direction
 
 # List of qualified class names to ignore when counting class parents (see
 # R0901)

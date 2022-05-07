@@ -4,11 +4,12 @@
 import logging
 import random
 import tcod
-from .actions import ExitAction, MovePlayerAction, RegenerateRoomsAction
+from . import monsters
 from .events import EventHandler
-from .geometry import Direction, Point, Size
+from .geometry import Direction, Size
 from .map import Map
-from .object import Entity
+from .monsters import Monster
+from .object import Entity, Hero
 from dataclasses import dataclass
 from typing import MutableSet
 
@@ -25,18 +26,33 @@ class Engine:
         self.configuration = configuration
 
         self.rng = tcod.random.Random()
-
-        map_size = configuration.map_size
-        self.map = Map(map_size)
+        self.map = Map(configuration.map_size)
 
         first_room = self.map.generator.rooms[0]
-        player_start_position = first_room.center
-        self.player = Entity('@', position=player_start_position, fg=tcod.white)
+        hero_start_position = first_room.center
+        self.hero = Hero(position=hero_start_position)
 
-        self.entities: MutableSet[Entity] = {self.player}
-        for _ in range(self.rng.randint(5, 15)):
-            position = self.map.random_walkable_position()
-            self.entities.add(Entity('@', position=position, fg=tcod.yellow))
+        self.entities: MutableSet[Entity] = {self.hero}
+        for room in self.map.rooms:
+            should_spawn_monster_chance = random.random()
+            if should_spawn_monster_chance < 0.4:
+                continue
+
+            floor = list(room.walkable_tiles)
+            while True:
+                random_start_position = random.choice(floor)
+                if not any(ent.position == random_start_position for ent in self.entities):
+                    break
+
+            for _ in range(2):
+                spawn_monster_chance = random.random()
+                if spawn_monster_chance > 0.8:
+                    monster = Monster(monsters.Troll, position=random_start_position)
+                else:
+                    monster = Monster(monsters.Orc, position=random_start_position)
+
+                LOG.info(f'Spawning monster {monster}')
+                self.entities.add(monster)
 
         self.update_field_of_view()
 
@@ -46,13 +62,13 @@ class Engine:
         if not action:
             return
 
-        action.perform(self, self.player)
+        action.perform(self, self.hero)
 
         directions = list(Direction.all())
-        moved_entities: MutableSet[Entity] = {self.player}
+        moved_entities: MutableSet[Entity] = {self.hero}
 
         for ent in self.entities:
-            if ent == self.player:
+            if ent == self.hero:
                 continue
 
             while True:
@@ -78,7 +94,7 @@ class Engine:
         '''Compute visible area of the map based on the player's position and point of view.'''
         self.map.visible[:] = tcod.map.compute_fov(
             self.map.tiles['transparent'],
-            tuple(self.player.position),
+            tuple(self.hero.position),
             radius=8)
 
         # Visible tiles should be added to the explored list

@@ -66,7 +66,26 @@ class Engine:
         if not action:
             return
 
-        action.perform(self, self.hero)
+        result = action.perform(self, self.hero)
+        LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
+
+        while not result.done:
+            alternate = result.alternate
+            assert alternate is not None, f'Action {result.action} incomplete but no alternate action given'
+
+            result = alternate.perform(self, self.hero)
+            LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
+
+            if result.success:
+                LOG.info('Action succeded!')
+                break
+
+            if result.done:
+                LOG.info('Action failed!')
+                break
+
+        if not result.success and result.done:
+            return
 
         directions = list(Direction.all())
         moved_entities: MutableSet[Entity] = {self.hero}

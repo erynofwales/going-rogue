@@ -35,7 +35,7 @@ class Vector:
         yield self.dy
 
     def __str__(self):
-        return f'(δx:{self.x}, δy:{self.y})'
+        return f'(δx:{self.dx}, δy:{self.dy})'
 
 class Direction:
     North = Vector(0, -1)
@@ -49,6 +49,7 @@ class Direction:
 
     @classmethod
     def all(cls) -> Iterator['Direction']:
+        '''Iterate through all directions, starting with North and proceeding clockwise'''
         yield Direction.North
         yield Direction.NorthEast
         yield Direction.East

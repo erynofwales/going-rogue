@@ -24,12 +24,15 @@ class Map:
         # Map tiles that the player has explored
         self.explored = np.full(tuple(self.size), fill_value=False, order='F')
 
+    @property
+    def rooms(self) -> List['Room']:
+        return self.generator.rooms
+
     def random_walkable_position(self) -> Point:
         # TODO: Include hallways
-        random_room: RectangularRoom = random.choice(self.generator.rooms)
-        floor = random_room.floor_bounds
-        random_position_in_room = Point(random.randint(floor.min_x, floor.max_x),
-                                        random.randint(floor.min_y, floor.max_y))
+        random_room: RectangularRoom = random.choice(self.rooms)
+        floor: List[Point] = list(random_room.walkable_tiles)
+        random_position_in_room = random.choice(floor)
         return random_position_in_room
 
     def tile_is_in_bounds(self, point: Point) -> bool:
@@ -52,6 +55,7 @@ class Map:
 class MapGenerator:
     def __init__(self, *, size: Size):
         self.size = size
+        self.rooms: List['Room'] = []
 
     def generate(self) -> np.ndarray:
         '''
@@ -212,8 +216,14 @@ class RoomsAndCorridorsGenerator(MapGenerator):
     def __rect_from_bsp_node(self, node: tcod.bsp.BSP) -> Rect:
         return Rect(Point(node.x, node.y), Size(node.width, node.height))
 
+class Room:
+    '''An abstract room. It can be any size or shape.'''
 
-class RectangularRoom:
+    @property
+    def walkable_tiles(self) -> Iterator[Point]:
+        raise NotImplementedError()
+
+class RectangularRoom(Room):
     def __init__(self, bounds: Rect):
         self.bounds = bounds
 
@@ -222,8 +232,11 @@ class RectangularRoom:
         return self.bounds.midpoint
 
     @property
-    def floor_bounds(self) -> Rect:
-        return self.bounds.inset_rect(top=1, right=1, bottom=1, left=1)
+    def walkable_tiles(self) -> Rect:
+        floor_rect = self.bounds.inset_rect(top=1, right=1, bottom=1, left=1)
+        for y in range(floor_rect.min_y, floor_rect.max_y + 1):
+            for x in range(floor_rect.min_x, floor_rect.max_x + 1):
+                yield Point(x, y)
 
     @property
     def walls(self) -> Iterator[Point]:

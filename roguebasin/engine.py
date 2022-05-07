@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
 '''Defines the core game engine.'''
@@ -11,8 +10,7 @@ from typing import MutableSet
 import tcod
 
 from . import monsters
-from .events import EventHandler
-from .geometry import Direction, Size
+from .geometry import Size
 from .map import Map
 from .monsters import Monster
 from .object import Entity, Hero

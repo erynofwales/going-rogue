@@ -63,6 +63,11 @@ class MapGenerator:
 
         Subclasses should implement this and fill in their specific map
         generation algorithm.
+
+        Returns
+        -------
+        np.ndarray
+            A two-dimensional array of tiles. Dimensions should match the given size.
         '''
         raise NotImplementedError()
 

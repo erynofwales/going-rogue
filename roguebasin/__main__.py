@@ -64,9 +64,9 @@ def main(argv):
     tileset = tcod.tileset.load_tilesheet(font, 16, 16, tcod.tileset.CHARMAP_CP437)
     console = tcod.Console(CONSOLE_WIDTH, CONSOLE_HEIGHT, order='F')
 
-    event_handler = EventHandler()
     configuration = Configuration(map_size=Size(MAP_WIDTH, MAP_HEIGHT))
-    engine = Engine(event_handler, configuration)
+    engine = Engine(configuration)
+    event_handler = EventHandler(engine)
 
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
         while True:
@@ -74,8 +74,7 @@ def main(argv):
             engine.print_to_console(console)
             context.present(console)
 
-            for event in tcod.event.wait():
-                engine.handle_event(event)
+            event_handler.wait_for_events()
 
 def run_until_exit():
     '''

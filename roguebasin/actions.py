@@ -71,15 +71,16 @@ class ActionResult:
 class Action:
     '''An action that an Entity should perform.'''
 
-    def perform(self, engine: 'Engine', entity: Entity) -> ActionResult:
+    def __init__(self, entity: Optional[Entity] = None):
+        self.entity = entity
+
+    def perform(self, engine: 'Engine') -> ActionResult:
         '''Perform this action.
 
         Parameters
         ----------
         engine : Engine
             The game engine
-        entity : Entity
-            The entity that this action is being performed on
 
         Returns
         -------
@@ -95,21 +96,21 @@ class Action:
 class ExitAction(Action):
     '''Exit the game.'''
 
-    def perform(self, engine: 'Engine', entity: Entity) -> ActionResult:
+    def perform(self, engine: 'Engine') -> ActionResult:
         raise SystemExit()
 
 class RegenerateRoomsAction(Action):
     '''Regenerate the dungeon map'''
 
-    def perform(self, engine: 'Engine', entity: Entity) -> ActionResult:
+    def perform(self, engine: 'Engine') -> ActionResult:
         return ActionResult(self, success=False)
 
 # pylint: disable=abstract-method
 class MoveAction(Action):
     '''An abstract Action that requires a direction to complete.'''
 
-    def __init__(self, direction: Direction):
-        super().__init__()
+    def __init__(self, entity: Entity, direction: Direction):
+        super().__init__(entity)
         self.direction = direction
 
     def __repr__(self):
@@ -126,8 +127,8 @@ class BumpAction(MoveAction):
         The direction to test
     '''
 
-    def perform(self, engine: 'Engine', entity: Entity) -> ActionResult:
-        new_position = entity.position + self.direction
+    def perform(self, engine: 'Engine') -> ActionResult:
+        new_position = self.entity.position + self.direction
 
         position_is_in_bounds = engine.map.tile_is_in_bounds(new_position)
         position_is_walkable = engine.map.tile_is_walkable(new_position)
@@ -140,7 +141,8 @@ class BumpAction(MoveAction):
         else:
             entity_occupying_position = None
 
-        LOG.info('Bumping %s (in_bounds:%s walkable:%s overlaps:%s)',
+        LOG.info('Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
+                 self.entity,
                  new_position,
                  position_is_in_bounds,
                  position_is_walkable,
@@ -150,29 +152,29 @@ class BumpAction(MoveAction):
             return ActionResult(self, success=False)
 
         if entity_occupying_position:
-            return ActionResult(self, alternate=MeleeAction(self.direction, entity_occupying_position))
+            return ActionResult(self, alternate=MeleeAction(self.entity, self.direction, entity_occupying_position))
 
-        return ActionResult(self, alternate=WalkAction(self.direction))
+        return ActionResult(self, alternate=WalkAction(self.entity, self.direction))
 
 
 class WalkAction(MoveAction):
     '''Walk one step in the given direction.'''
 
-    def perform(self, engine: 'Engine', entity: Entity) -> ActionResult:
-        new_position = entity.position + self.direction
+    def perform(self, engine: 'Engine') -> ActionResult:
+        new_position = self.entity.position + self.direction
 
-        LOG.info('Moving %s to %s', entity, new_position)
-        entity.position = new_position
+        LOG.info('Moving %s to %s', self.entity, new_position)
+        self.entity.position = new_position
 
         return ActionResult(self, success=True)
 
 class MeleeAction(MoveAction):
     '''Perform a melee attack on another entity'''
 
-    def __init__(self, direction: Direction, target: Entity):
-        super().__init__(direction)
+    def __init__(self, entity: Entity, direction: Direction, target: Entity):
+        super().__init__(entity, direction)
         self.target = target
 
-    def perform(self, engine: 'Engine', entity: Entity) -> ActionResult:
+    def perform(self, engine: 'Engine') -> ActionResult:
         LOG.info('Attack! %s', self.target)
         return ActionResult(self, success=True)

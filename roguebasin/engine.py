@@ -34,8 +34,6 @@ class Engine:
         Defines the basic configuration for the game
     entities : MutableSet[Entity]
         A set of all the entities on the current map, including the Hero
-    event_handler : EventHandler
-        An event handler object that can handle events from `tcod`
     hero : Hero
         The hero, the Entity controlled by the player
     map : Map
@@ -44,8 +42,7 @@ class Engine:
         A random number generator
     '''
 
-    def __init__(self, event_handler: EventHandler, configuration: Configuration):
-        self.event_handler = event_handler
+    def __init__(self, configuration: Configuration):
         self.configuration = configuration
 
         self.rng = tcod.random.Random()
@@ -76,51 +73,6 @@ class Engine:
 
                 LOG.info('Spawning monster %s', monster)
                 self.entities.add(monster)
-
-        self.update_field_of_view()
-
-    def handle_event(self, event: tcod.event.Event):
-        '''Handle the specified event. Transform that event into an Action via an EventHandler and perform it.'''
-        action = self.event_handler.dispatch(event)
-
-        if not action:
-            return
-
-        result = action.perform(self, self.hero)
-        LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
-
-        while not result.done:
-            alternate = result.alternate
-            assert alternate is not None, f'Action {result.action} incomplete but no alternate action given'
-
-            result = alternate.perform(self, self.hero)
-            LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
-
-            if result.success:
-                LOG.info('Action succeded!')
-                break
-
-            if result.done:
-                LOG.info('Action failed!')
-                break
-
-        if not result.success and result.done:
-            return
-
-        directions = list(Direction.all())
-        moved_entities: MutableSet[Entity] = {self.hero}
-
-        for ent in self.entities:
-            if ent == self.hero:
-                continue
-
-            while True:
-                new_position = ent.position + random.choice(directions)
-                overlaps_with_previously_moved_entity = any(new_position == moved_ent.position for moved_ent in moved_entities)
-                if not overlaps_with_previously_moved_entity and self.map.tile_is_walkable(new_position):
-                    ent.position = new_position
-                    moved_entities.add(ent)
-                    break
 
         self.update_field_of_view()
 

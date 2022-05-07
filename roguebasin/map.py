@@ -204,9 +204,6 @@ class RoomsAndCorridorsGenerator(MapGenerator):
 
         return tiles
 
-    def generate_tunnel(self, start_room_bounds: Rect, end_room_bounds: Rect):
-        pass
-
     def __rect_from_bsp_node(self, node: tcod.bsp.BSP) -> Rect:
         return Rect(Point(node.x, node.y), Size(node.width, node.height))
 

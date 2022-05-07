@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
-'''This module defines all of the actions that can be performed by the game. These actions can come from the player
-(e.g. via keyboard input), or from non-player entities (e.g. AI deciboard input), or from non-player entities (e.g. AI
+'''
+This module defines all of the actions that can be performed by the game. These actions can come from the player (e.g.
+via keyboard input), or from non-player entities (e.g. AI deciboard input), or from non-player entities (e.g. AI
 decisions).
 
 Class Hierarchy
@@ -10,6 +11,7 @@ Class Hierarchy
 
 Action : Base class of all actions
     MoveAction : Base class for all actions that are performed with a direction
+        BumpAction
         WalkAction
         MeleeAction
     ExitAction
@@ -23,7 +25,7 @@ from .object import Entity
 if TYPE_CHECKING:
     from .engine import Engine
 
-LOG = logging.getLogger('events')
+LOG = logging.getLogger(__name__)
 
 class ActionResult:
     '''The result of an Action.
@@ -64,7 +66,7 @@ class ActionResult:
             self.done = not alternate
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.action}, success={self.success}, done={self.done}, alternate={self.alternate})'
+        return f'{self.__class__.__name__}({self.action!r}, success={self.success}, done={self.done}, alternate={self.alternate!r})'
 
 class Action:
     '''An action that an Entity should perform.'''
@@ -88,7 +90,7 @@ class Action:
         raise NotImplementedError()
 
     def __repr__(self):
-        return f'{self.__class__.__name__}()'
+        return f'{self.__class__.__name__}({self.entity!r})'
 
 class ExitAction(Action):
     '''Exit the game.'''
@@ -111,7 +113,7 @@ class MoveAction(Action):
         self.direction = direction
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.direction})'
+        return f'{self.__class__.__name__}({self.entity!r}, {self.direction!r})'
 
 class BumpAction(MoveAction):
     '''Attempt to perform a movement action in a direction.

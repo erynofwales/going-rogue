@@ -18,7 +18,6 @@ from .monsters import Monster
 from .object import Entity, Hero
 
 LOG = logging.getLogger('engine')
-EVENT_LOG = logging.getLogger('events')
 
 @dataclass
 class Configuration:

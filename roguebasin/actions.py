@@ -2,8 +2,8 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import logging
-from .geometry import Direction
 from typing import Optional, TYPE_CHECKING
+from .geometry import Direction
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -13,7 +13,6 @@ LOG = logging.getLogger('events')
 
 class ActionResult:
     '''An object that represents the result of an Action.
-
 
     Attributes
     ----------

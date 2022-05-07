@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
+'''Defines the core game engine.'''
+
 import logging
 import random
+from dataclasses import dataclass
+from typing import MutableSet
+
 import tcod
+
 from . import monsters
 from .events import EventHandler
 from .geometry import Direction, Size
 from .map import Map
 from .monsters import Monster
 from .object import Entity, Hero
-from dataclasses import dataclass
-from typing import MutableSet
 
 LOG = logging.getLogger('engine')
 EVENT_LOG = logging.getLogger('events')
@@ -82,6 +86,7 @@ class Engine:
         self.update_field_of_view()
 
     def print_to_console(self, console):
+        '''Print the whole game to the given console.'''
         self.map.print_to_console(console)
 
         for ent in self.entities:

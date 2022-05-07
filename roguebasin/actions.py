@@ -3,7 +3,7 @@
 
 import logging
 from .geometry import Direction
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -11,11 +11,41 @@ if TYPE_CHECKING:
 
 LOG = logging.getLogger('events')
 
+class ActionResult:
+    '''An object that represents the result of an Action.
+
+
+    Attributes
+    ----------
+    success : bool
+        True if the action succeeded
+    done : bool
+        True if the action is complete, and no follow-up action is needed.
+    alternate : Action, optional
+        An alternate action to perform if this action failed
+    '''
+
+    def __init__(self, success: bool, done: bool = True, alternate: Optional['Action'] = None):
+        self.success = success
+        self.done = done
+        self.alternate = alternate
+
 class Action:
-    def perform(self, engine: 'Engine', entity: 'Entity') -> None:
-        '''
-        Perform this action. This is an abstract method that all subclasses
-        should implement.
+    def perform(self, engine: 'Engine', entity: 'Entity') -> ActionResult:
+        '''Perform this action.
+
+        Parameters
+        ----------
+        engine : Engine
+            The game engine
+        entity : Entity
+            The entity that this action is being performed on
+
+        Returns
+        -------
+        ActionResult
+            A result object reflecting how the action was handled, and what follow-up actions, if any, are needed to
+            complete the action.
         '''
         raise NotImplementedError()
 
@@ -23,12 +53,12 @@ class Action:
         return f'{self.__class__.__name__}()'
 
 class ExitAction(Action):
-    def perform(self, engine: 'Engine', entity: 'Entity') -> None:
+    def perform(self, engine: 'Engine', entity: 'Entity') -> ActionResult:
         raise SystemExit()
 
 class RegenerateRoomsAction(Action):
-    def perform(self, engine: 'Engine', entity: 'Entity') -> None:
-        ...
+    def perform(self, engine: 'Engine', entity: 'Entity') -> ActionResult:
+        return ActionResult(True)
 
 class MovePlayerAction(Action):
     def __init__(self, direction: Direction):

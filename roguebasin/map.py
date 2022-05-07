@@ -205,6 +205,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
         return tiles
 
     def __rect_from_bsp_node(self, node: tcod.bsp.BSP) -> Rect:
+        '''Create a Rect from the given BSP node object'''
         return Rect(Point(node.x, node.y), Size(node.width, node.height))
 
 class Room:
@@ -215,11 +216,21 @@ class Room:
         raise NotImplementedError()
 
 class RectangularRoom(Room):
+    '''A rectangular room defined by a Rect.
+
+    Attributes
+    ----------
+    bounds : Rect
+        A rectangle that defines the room. This rectangle includes the tiles used for the walls, so the floor is 1 tile
+        inset from the bounds.
+    '''
+
     def __init__(self, bounds: Rect):
         self.bounds = bounds
 
     @property
     def center(self) -> Point:
+        '''The center of the room, truncated according to integer math rules'''
         return self.bounds.midpoint
 
     @property

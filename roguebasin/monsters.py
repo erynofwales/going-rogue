@@ -18,6 +18,8 @@ class Species:
         The symbol used to render the monster on the map
     maximum_hit_points : int
         The maximum number of hit points the monster can be spawned with
+    sight_radius : int
+        The number of tiles this monster can see
     foreground_color : Tuple[int, int, int]
         The foreground color used to render the monster on the map
     background_color : Tuple[int, int, int], optional
@@ -27,6 +29,7 @@ class Species:
     name: str
     symbol: str
     maximum_hit_points: int
+    sight_radius: int
     foreground_color: Tuple[int, int, int]
     background_color: Tuple[int, int, int] = None
 
@@ -41,5 +44,5 @@ class Monster(Entity):
     def __str__(self) -> str:
         return f'{self.symbol}[{self.species.name}][{self.position}][{self.hit_points}/{self.species.maximum_hit_points}]'
 
-Orc = Species(name='Orc', symbol='o', foreground_color=(63, 127, 63), maximum_hit_points=10)
-Troll = Species(name='Troll', symbol='T', foreground_color=(0, 127, 0), maximum_hit_points=20)
+Orc = Species(name='Orc', symbol='o', foreground_color=(63, 127, 63), maximum_hit_points=10, sight_radius=4)
+Troll = Species(name='Troll', symbol='T', foreground_color=(0, 127, 0), maximum_hit_points=20, sight_radius=4)

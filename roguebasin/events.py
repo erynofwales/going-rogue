@@ -19,24 +19,24 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         action: Optional[Action] = None
 
         sym = event.sym
-
-        if sym == tcod.event.KeySym.b:
-            action = BumpAction(Direction.SouthWest)
-        elif sym == tcod.event.KeySym.h:
-            action = BumpAction(Direction.West)
-        elif sym == tcod.event.KeySym.j:
-            action = BumpAction(Direction.South)
-        elif sym == tcod.event.KeySym.k:
-            action = BumpAction(Direction.North)
-        elif sym == tcod.event.KeySym.l:
-            action = BumpAction(Direction.East)
-        elif sym == tcod.event.KeySym.n:
-            action = BumpAction(Direction.SouthEast)
-        elif sym == tcod.event.KeySym.u:
-            action = BumpAction(Direction.NorthEast)
-        elif sym == tcod.event.KeySym.y:
-            action = BumpAction(Direction.NorthWest)
-        elif sym == tcod.event.KeySym.SPACE:
-            action = RegenerateRoomsAction()
+        match sym:
+            case tcod.event.KeySym.b:
+                action = BumpAction(Direction.SouthWest)
+            case tcod.event.KeySym.h:
+                action = BumpAction(Direction.West)
+            case tcod.event.KeySym.j:
+                action = BumpAction(Direction.South)
+            case tcod.event.KeySym.k:
+                action = BumpAction(Direction.North)
+            case tcod.event.KeySym.l:
+                action = BumpAction(Direction.East)
+            case tcod.event.KeySym.n:
+                action = BumpAction(Direction.SouthEast)
+            case tcod.event.KeySym.u:
+                action = BumpAction(Direction.NorthEast)
+            case tcod.event.KeySym.y:
+                action = BumpAction(Direction.NorthWest)
+            case tcod.event.KeySym.SPACE:
+                action = RegenerateRoomsAction()
 
         return action

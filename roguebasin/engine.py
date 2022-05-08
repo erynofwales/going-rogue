@@ -10,10 +10,10 @@ from typing import MutableSet
 import tcod
 
 from . import monsters
+from .ai import HostileEnemy
 from .geometry import Size
 from .map import Map
-from .monsters import Monster
-from .object import Entity, Hero
+from .object import Entity, Hero, Monster
 
 LOG = logging.getLogger('engine')
 
@@ -65,9 +65,9 @@ class Engine:
             for _ in range(2):
                 spawn_monster_chance = random.random()
                 if spawn_monster_chance > 0.8:
-                    monster = Monster(monsters.Troll, position=random_start_position)
+                    monster = Monster(monsters.Troll, ai_class=HostileEnemy, position=random_start_position)
                 else:
-                    monster = Monster(monsters.Orc, position=random_start_position)
+                    monster = Monster(monsters.Orc, ai_class=HostileEnemy, position=random_start_position)
 
                 LOG.info('Spawning monster %s', monster)
                 self.entities.add(monster)

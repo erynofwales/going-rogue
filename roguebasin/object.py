@@ -17,12 +17,14 @@ class Entity:
 
     def __init__(self, symbol: str, *,
                  position: Optional[Point] = None,
+                 ai: Optional[Type['AI']] = None,
                  fg: Optional[Tuple[int, int, int]] = None,
                  bg: Optional[Tuple[int, int, int]] = None):
         self.position = position if position else Point()
         self.foreground = fg if fg else (255, 255, 255)
         self.background = bg
         self.symbol = symbol
+        self.ai = ai
 
     def print_to_console(self, console: tcod.Console) -> None:
         console.print(x=self.position.x, y=self.position.y, string=self.symbol, fg=self.foreground, bg=self.background)

@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # Eryn Wells <eryn@erynwells.me>
 
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple, Type
 
 import tcod
 
+from .components import Fighter
 from .geometry import Point
+from .monsters import Species
+
+if TYPE_CHECKING:
+    from .ai import AI
 
 class Entity:
     '''A single-tile drawable entity with a symbol and position.'''
@@ -31,3 +36,16 @@ class Entity:
 class Hero(Entity):
     def __init__(self, position: Point):
         super().__init__('@', position=position, fg=tuple(tcod.white))
+
+class Monster(Entity):
+    '''An instance of a Species.'''
+
+    def __init__(self, species: Species, ai_class: Type['AI'], position: Point = None):
+        super().__init__(species.symbol, ai=ai_class(self), position=position, fg=species.foreground_color, bg=species.background_color)
+        self.species = species
+        self.fighter = Fighter(maximum_hit_points=species.maximum_hit_points,
+                               attack_power=species.attack_power,
+                               defense=species.defense)
+
+    def __str__(self) -> str:
+        return f'{self.symbol}[{self.species.name}][{self.position}][{self.fighter.hit_points}/{self.fighter.maximum_hit_points}]'

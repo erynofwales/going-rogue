@@ -1,11 +1,12 @@
 # Eryn Wells <eryn@erynwells.me>
 
+'''Defines the Species type, which represents a class of monsters, and all the monster types the hero can encounter in
+the dungeon.'''
+
 from dataclasses import dataclass
 from typing import Tuple
 
-from .geometry import Point
-from .object import Entity
-
+# pylint: disable=too-many-instance-attributes
 @dataclass(frozen=True)
 class Species:
     '''A kind of monster.
@@ -30,19 +31,19 @@ class Species:
     symbol: str
     maximum_hit_points: int
     sight_radius: int
+    # TODO: Rename these two attributes something better
+    attack_power: int
+    defense: int
     foreground_color: Tuple[int, int, int]
     background_color: Tuple[int, int, int] = None
 
-class Monster(Entity):
-    '''An instance of a Species.'''
-
-    def __init__(self, species: Species, position: Point = None):
-        super().__init__(species.symbol, position=position, fg=species.foreground_color, bg=species.background_color)
-        self.species: Species = species
-        self.hit_points: int = species.maximum_hit_points
-
-    def __str__(self) -> str:
-        return f'{self.symbol}[{self.species.name}][{self.position}][{self.hit_points}/{self.species.maximum_hit_points}]'
-
-Orc = Species(name='Orc', symbol='o', foreground_color=(63, 127, 63), maximum_hit_points=10, sight_radius=4)
-Troll = Species(name='Troll', symbol='T', foreground_color=(0, 127, 0), maximum_hit_points=20, sight_radius=4)
+Orc = Species(name='Orc', symbol='o',
+              foreground_color=(63, 127, 63),
+              maximum_hit_points=10,
+              sight_radius=4,
+              attack_power=4, defense=1)
+Troll = Species(name='Troll', symbol='T',
+                foreground_color=(0, 127, 0),
+                maximum_hit_points=16,
+                sight_radius=4,
+                attack_power=3, defense=0)

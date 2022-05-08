@@ -38,6 +38,7 @@ class Entity:
 class Hero(Entity):
     def __init__(self, position: Point):
         super().__init__('@', position=position, fg=tuple(tcod.white))
+        self.fighter = Fighter(maximum_hit_points=30, attack_power=5, defense=2)
 
 class Monster(Entity):
     '''An instance of a Species.'''

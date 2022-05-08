@@ -3,14 +3,12 @@
 '''Defines event handling mechanisms.'''
 
 import logging
-import random
-from typing import MutableSet, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 import tcod
 
 from .actions import Action, ActionResult, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
 from .geometry import Direction
-from .object import Entity
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -42,23 +40,13 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         if not result.success and result.done:
             return
 
-        directions = list(Direction.all())
-
-        hero = self.engine.hero
-        moved_entities: MutableSet[Entity] = {self.engine.hero}
-
         for ent in self.engine.entities:
-            if ent == hero:
+            ent_ai = ent.ai
+            if not ent_ai:
                 continue
 
-            while True:
-                new_position = ent.position + random.choice(directions)
-                overlaps_with_previously_moved_entity = any(new_position == moved_ent.position for moved_ent in moved_entities)
-                tile_is_walkable = self.engine.map.tile_is_walkable(new_position)
-                if not overlaps_with_previously_moved_entity and tile_is_walkable:
-                    ent.position = new_position
-                    moved_entities.add(ent)
-                    break
+            action = ent_ai.act(self.engine)
+            self.perform_action_until_done(action)
 
         self.engine.update_field_of_view()
 

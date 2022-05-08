@@ -15,6 +15,7 @@ Action : Base class of all actions
         WalkAction
         MeleeAction
     ExitAction
+    WaitAction
 '''
 
 import logging

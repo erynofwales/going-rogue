@@ -178,3 +178,10 @@ class MeleeAction(MoveAction):
     def perform(self, engine: 'Engine') -> ActionResult:
         LOG.info('Attack! %s', self.target)
         return ActionResult(self, success=True)
+
+class WaitAction(Action):
+    '''Wait a turn'''
+
+    def perform(self, engine: 'Engine') -> ActionResult:
+        LOG.info('%s is waiting a turn', self.entity)
+        return ActionResult(self, success=True)

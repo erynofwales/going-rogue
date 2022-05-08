@@ -8,7 +8,7 @@ from typing import MutableSet, Optional, TYPE_CHECKING
 
 import tcod
 
-from .actions import Action, ActionResult, ExitAction, RegenerateRoomsAction, BumpAction
+from .actions import Action, ActionResult, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
 from .geometry import Direction
 from .object import Entity
 
@@ -77,8 +77,10 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             if result.success:
                 LOG.info('Action succeded!')
                 break
-        else:
-            LOG.info('Action failed!')
+
+            if result.done:
+                LOG.info('Action failed!')
+                break
 
         return result
 
@@ -110,5 +112,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
                 action = BumpAction(hero, Direction.NorthWest)
             case tcod.event.KeySym.SPACE:
                 action = RegenerateRoomsAction()
+            case tcod.event.KeySym.PERIOD:
+                action = WaitAction(hero)
 
         return action

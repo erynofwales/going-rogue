@@ -1,11 +1,12 @@
 
+VENV_DIR=.venv
 
-.PHONY: env
-venv: env
-	python3 -m venv env
+.PHONY: venv
+venv:
+	python3 -m venv ${VENV_DIR}
 
-deps: env/bin/pip
-	./env/bin/pip install -r requirements.txt
+deps: ${VENV_DIR}/bin/pip requirements.txt
+	${VENV_DIR}/bin/pip install -r requirements.txt
 
-freeze:
-	./env/bin/pip freeze > requirements.txt
+freeze: ${VENV_DIR}/bin/pip
+	${VENV_DIR}/bin/pip freeze > requirements.txt

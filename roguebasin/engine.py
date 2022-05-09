@@ -69,7 +69,7 @@ class Engine:
                 else:
                     monster = Monster(monsters.Orc, ai_class=HostileEnemy, position=random_start_position)
 
-                LOG.info('Spawning monster %s', monster)
+                LOG.info('Spawning %s', monster)
                 self.entities.add(monster)
 
         self.update_field_of_view()

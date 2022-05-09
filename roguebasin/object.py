@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional, Tuple, Type
 
 import tcod
 
+from . import items
 from .components import Fighter
 from .geometry import Point
 from .monsters import Species
@@ -138,3 +139,21 @@ class Monster(Actor):
     def __str__(self) -> str:
         return f'{self.name} with {self.fighter.hit_points}/{self.fighter.maximum_hit_points} hp at {self.position}'
 
+class Item(Entity):
+    '''An instance of an Item'''
+
+    def __init__(self, kind: items.Item, position: Point = None, name: str = None):
+        super().__init__(kind.symbol,
+                         position=position,
+                         blocks_movement=False,
+                         fg=kind.foreground_color,
+                         bg=kind.background_color)
+        self.kind = kind
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        '''The name of the item'''
+        if self._name:
+            return self._name
+        return self.kind.name

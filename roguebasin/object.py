@@ -49,26 +49,90 @@ class Entity:
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.symbol}, position={self.position}, fg={self.foreground}, bg={self.background})'
 
-class Hero(Entity):
+class Actor(Entity):
+    def __init__(self, symbol: str, *,
+                 position: Optional[Point] = None,
+                 blocks_movement: Optional[bool] = True,
+                 ai: Optional[Type['AI']] = None,
+                 fighter: Optional[Fighter] = None,
+                 fg: Optional[Tuple[int, int, int]] = None,
+                 bg: Optional[Tuple[int, int, int]] = None):
+        super().__init__(symbol, position=position, blocks_movement=blocks_movement, fg=fg, bg=bg)
+
+        # Components
+        self.ai = ai
+        self.fighter = fighter
+
+    @property
+    def name(self) -> str:
+        return 'Actor'
+
+    @property
+    def sight_radius(self) -> int:
+        '''The number of tiles this entity can see around itself'''
+        return 0
+
+    @property
+    def yields_corpse_on_death(self) -> bool:
+        '''True if this Actor should produce a corpse when it dies'''
+        return False
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({self.symbol!r}, position={self.position!r}, fighter={self.fighter!r}, ai={self.ai!r}, fg={self.foreground!r}, bg={self.background!r})'
+
+class Hero(Actor):
     '''The hero, the player character'''
 
     def __init__(self, position: Point):
-        super().__init__('@', position=position, fg=tuple(tcod.white))
-        self.fighter = Fighter(maximum_hit_points=30, attack_power=5, defense=2)
+        super().__init__('@',
+             position=position,
+             fighter=Fighter(maximum_hit_points=30, attack_power=5, defense=2),
+             fg=tuple(tcod.white))
+
+    @property
+    def name(self) -> str:
+        return 'Hero'
+
+    @property
+    def sight_radius(self) -> int:
+        # TODO: Make this configurable
+        return 8
 
     def __str__(self) -> str:
         return f'{self.symbol}[{self.position}][{self.fighter.hit_points}/{self.fighter.maximum_hit_points}]'
 
 
-class Monster(Entity):
-    '''An instance of a Species.'''
+class Monster(Actor):
+    '''An instance of a Species'''
 
     def __init__(self, species: Species, ai_class: Type['AI'], position: Point = None):
-        super().__init__(species.symbol, ai=ai_class(self), position=position, fg=species.foreground_color, bg=species.background_color)
+        fighter = Fighter(
+            maximum_hit_points=species.maximum_hit_points,
+            attack_power=species.attack_power,
+            defense=species.defense)
+
+        super().__init__(
+            species.symbol,
+            ai=ai_class(self),
+            position=position,
+            fighter=fighter,
+            fg=species.foreground_color,
+            bg=species.background_color)
+
         self.species = species
-        self.fighter = Fighter(maximum_hit_points=species.maximum_hit_points,
-                               attack_power=species.attack_power,
-                               defense=species.defense)
+
+    @property
+    def name(self) -> str:
+        return self.species.name
+
+    @property
+    def sight_radius(self) -> int:
+        return self.species.sight_radius
+
+    @property
+    def yields_corpse_on_death(self) -> bool:
+        return True
 
     def __str__(self) -> str:
-        return f'{self.symbol}[{self.species.name}][{self.position}][{self.fighter.hit_points}/{self.fighter.maximum_hit_points}]'
+        return f'{self.name} with {self.fighter.hit_points}/{self.fighter.maximum_hit_points} hp at {self.position}'
+

@@ -162,7 +162,7 @@ class BumpAction(MoveAction):
         if not position_is_in_bounds or not position_is_walkable:
             return self.failure()
 
-        if entity_occupying_position:
+        if entity_occupying_position and entity_occupying_position.blocks_movement:
             return ActionResult(self, alternate=MeleeAction(self.actor, self.direction, entity_occupying_position))
 
         return ActionResult(self, alternate=WalkAction(self.actor, self.direction))

@@ -20,8 +20,10 @@ Action : Base class of all actions
 
 import logging
 from typing import Optional, TYPE_CHECKING
+
+from . import items
 from .geometry import Direction
-from .object import Entity
+from .object import Actor, Item
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -185,7 +187,23 @@ class MeleeAction(MoveAction):
         self.target = target
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        LOG.info('Attack! %s', self.target)
+        if not self.target:
+            return self.failure()
+
+        if not self.actor.fighter or not self.target.fighter:
+            return self.failure()
+
+        damage = self.actor.fighter.attack_power - self.target.fighter.defense
+        if damage > 0:
+            LOG.info('%s attacks %s for %d damage!', self.actor, self.target, damage)
+            self.target.fighter.hit_points -= damage
+        else:
+            LOG.info('%s attacks %s but does no damage!', self.actor, self.target)
+
+        if self.target.fighter.is_dead:
+            LOG.info('%s is dead!', self.target)
+            return ActionResult(self, alternate=DieAction(self.target))
+
         return self.success()
 
 class WaitAction(Action):
@@ -193,4 +211,29 @@ class WaitAction(Action):
 
     def perform(self, engine: 'Engine') -> ActionResult:
         LOG.info('%s is waiting a turn', self.actor)
+        return self.success()
+
+class DieAction(Action):
+    '''Kill an Actor'''
+
+    def perform(self, engine: 'Engine') -> ActionResult:
+        LOG.info('%s dies', self.actor)
+        engine.entities.remove(self.actor)
+
+        if self.actor.yields_corpse_on_death:
+            LOG.info('%s leaves a corpse behind', self.actor)
+            corpse = Item(kind=items.Corpse, name=f'{self.actor.name} Corpse', position=self.actor.position)
+            return ActionResult(self, alternate=DropItemAction(self.actor, corpse))
+
+        return self.success()
+
+class DropItemAction(Action):
+    '''Drop an item'''
+
+    def __init__(self, actor: 'Actor', item: 'Item'):
+        super().__init__(actor)
+        self.item = item
+
+    def perform(self, engine: 'Engine') -> ActionResult:
+        engine.entities.add(self.item)
         return self.success()

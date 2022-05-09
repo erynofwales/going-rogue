@@ -79,7 +79,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         return result
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
-        return ExitAction()
+        return ExitAction(self.engine.hero)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
         action: Optional[Action] = None

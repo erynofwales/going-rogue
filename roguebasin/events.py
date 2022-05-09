@@ -9,6 +9,7 @@ import tcod
 
 from .actions import Action, ActionResult, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
 from .geometry import Direction
+from .object import Actor
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -40,7 +41,12 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         if not result.success and result.done:
             return
 
-        for ent in self.engine.entities:
+        # Copy the list so we only act on the entities that exist at the start of this turn
+        entities = list(self.engine.entities)
+        for ent in entities:
+            if not isinstance(ent, Actor):
+                continue
+
             ent_ai = ent.ai
             if not ent_ai:
                 continue

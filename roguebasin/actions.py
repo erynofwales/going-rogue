@@ -72,8 +72,8 @@ class ActionResult:
 class Action:
     '''An action that an Entity should perform.'''
 
-    def __init__(self, entity: Optional[Entity] = None):
-        self.entity = entity
+    def __init__(self, actor: Optional[Actor]):
+        self.actor = actor
 
     def perform(self, engine: 'Engine') -> ActionResult:
         '''Perform this action.
@@ -100,7 +100,7 @@ class Action:
         return ActionResult(self, success=True)
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.entity!r})'
+        return f'{self.__class__.__name__}({self.actor!r})'
 
 class ExitAction(Action):
     '''Exit the game.'''
@@ -118,12 +118,12 @@ class RegenerateRoomsAction(Action):
 class MoveAction(Action):
     '''An abstract Action that requires a direction to complete.'''
 
-    def __init__(self, entity: Entity, direction: Direction):
-        super().__init__(entity)
+    def __init__(self, actor: Actor, direction: Direction):
+        super().__init__(actor)
         self.direction = direction
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.entity!r}, {self.direction!r})'
+        return f'{self.__class__.__name__}({self.actor!r}, {self.direction!r})'
 
 class BumpAction(MoveAction):
     '''Attempt to perform a movement action in a direction.
@@ -137,7 +137,7 @@ class BumpAction(MoveAction):
     '''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        new_position = self.entity.position + self.direction
+        new_position = self.actor.position + self.direction
 
         position_is_in_bounds = engine.map.tile_is_in_bounds(new_position)
         position_is_walkable = engine.map.tile_is_walkable(new_position)
@@ -151,7 +151,7 @@ class BumpAction(MoveAction):
             entity_occupying_position = None
 
         LOG.info('Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
-                 self.entity,
+                 self.actor,
                  new_position,
                  position_is_in_bounds,
                  position_is_walkable,
@@ -161,27 +161,27 @@ class BumpAction(MoveAction):
             return self.failure()
 
         if entity_occupying_position:
-            return ActionResult(self, alternate=MeleeAction(self.entity, self.direction, entity_occupying_position))
+            return ActionResult(self, alternate=MeleeAction(self.actor, self.direction, entity_occupying_position))
 
-        return ActionResult(self, alternate=WalkAction(self.entity, self.direction))
+        return ActionResult(self, alternate=WalkAction(self.actor, self.direction))
 
 
 class WalkAction(MoveAction):
     '''Walk one step in the given direction.'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        new_position = self.entity.position + self.direction
+        new_position = self.actor.position + self.direction
 
-        LOG.info('Moving %s to %s', self.entity, new_position)
-        self.entity.position = new_position
+        LOG.info('Moving %s to %s', self.actor, new_position)
+        self.actor.position = new_position
 
         return self.success()
 
 class MeleeAction(MoveAction):
-    '''Perform a melee attack on another entity'''
+    '''Perform a melee attack on another Actor'''
 
-    def __init__(self, entity: Entity, direction: Direction, target: Entity):
-        super().__init__(entity, direction)
+    def __init__(self, actor: Actor, direction: Direction, target: Actor):
+        super().__init__(actor, direction)
         self.target = target
 
     def perform(self, engine: 'Engine') -> ActionResult:
@@ -192,5 +192,5 @@ class WaitAction(Action):
     '''Wait a turn'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        LOG.info('%s is waiting a turn', self.entity)
+        LOG.info('%s is waiting a turn', self.actor)
         return self.success()

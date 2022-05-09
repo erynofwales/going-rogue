@@ -3,7 +3,7 @@
 '''A bunch of geometric primitives'''
 
 from dataclasses import dataclass
-from typing import Any, Iterator, overload
+from typing import Any, Iterator, Optional, overload
 
 @dataclass(frozen=True)
 class Point:
@@ -11,6 +11,29 @@ class Point:
 
     x: int = 0
     y: int = 0
+
+    def is_adjacent_to(self, other: 'Point') -> bool:
+        '''Check if this point is adjacent to, but not overlapping the given point
+
+        Parameters
+        ----------
+        other : Point
+            The point to check
+
+        Returns
+        -------
+        bool
+            True if this point is adjacent to the other point
+        '''
+        return (self.x in (other.x - 1, other.x + 1)) and (self.y in (other.y -1, other.y + 1))
+
+    def direction_to_adjacent_point(self, other: 'Point') -> Optional['Direction']:
+        for direction in Direction.all():
+            if (self + direction) != other:
+                continue
+            return direction
+
+        return None
 
     @overload
     def __add__(self, other: 'Vector') -> 'Point':

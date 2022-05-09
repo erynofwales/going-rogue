@@ -91,6 +91,14 @@ class Action:
         '''
         raise NotImplementedError()
 
+    def failure(self) -> ActionResult:
+        '''Create an ActionResult indicating failure with no follow-up'''
+        return ActionResult(self, success=False)
+
+    def success(self) -> ActionResult:
+        '''Create an ActionResult indicating success with no follow-up'''
+        return ActionResult(self, success=True)
+
     def __repr__(self):
         return f'{self.__class__.__name__}({self.entity!r})'
 
@@ -150,7 +158,7 @@ class BumpAction(MoveAction):
                  entity_occupying_position)
 
         if not position_is_in_bounds or not position_is_walkable:
-            return ActionResult(self, success=False)
+            return self.failure()
 
         if entity_occupying_position:
             return ActionResult(self, alternate=MeleeAction(self.entity, self.direction, entity_occupying_position))
@@ -167,7 +175,7 @@ class WalkAction(MoveAction):
         LOG.info('Moving %s to %s', self.entity, new_position)
         self.entity.position = new_position
 
-        return ActionResult(self, success=True)
+        return self.success()
 
 class MeleeAction(MoveAction):
     '''Perform a melee attack on another entity'''
@@ -178,11 +186,11 @@ class MeleeAction(MoveAction):
 
     def perform(self, engine: 'Engine') -> ActionResult:
         LOG.info('Attack! %s', self.target)
-        return ActionResult(self, success=True)
+        return self.success()
 
 class WaitAction(Action):
     '''Wait a turn'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
         LOG.info('%s is waiting a turn', self.entity)
-        return ActionResult(self, success=True)
+        return self.success()

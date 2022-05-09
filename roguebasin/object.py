@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .ai import AI
 
 class Entity:
-    '''A single-tile drawable entity with a symbol and position.
+    '''A single-tile drawable entity with a symbol and position
 
     Attributes
     ----------
@@ -26,18 +26,20 @@ class Entity:
         A single character string that represents this character on the map
     ai : Type[AI], optional
         If an entity can act on its own behalf, an instance of an AI class
+    blocks_movement : bool
+        True if this Entity blocks other Entities from moving through its position
     '''
 
     def __init__(self, symbol: str, *,
                  position: Optional[Point] = None,
-                 ai: Optional[Type['AI']] = None,
+                 blocks_movement: Optional[bool] = True,
                  fg: Optional[Tuple[int, int, int]] = None,
                  bg: Optional[Tuple[int, int, int]] = None):
         self.position = position if position else Point()
         self.foreground = fg if fg else (255, 255, 255)
         self.background = bg
         self.symbol = symbol
-        self.ai = ai
+        self.blocks_movement = blocks_movement
 
     def print_to_console(self, console: tcod.Console) -> None:
         '''Render this Entity to the console'''
@@ -47,7 +49,7 @@ class Entity:
         return f'{self.symbol}[{self.position}]'
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({self.symbol}, position={self.position}, fg={self.foreground}, bg={self.background})'
+        return f'{self.__class__.__name__}({self.symbol!r}, position={self.position!r}, fg={self.foreground!r}, bg={self.background!r})'
 
 class Actor(Entity):
     def __init__(self, symbol: str, *,

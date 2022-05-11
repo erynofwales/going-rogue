@@ -1,5 +1,6 @@
 # Eryn Wells <eryn@erynwells.me>
 
+from enum import Enum
 from typing import TYPE_CHECKING, Optional, Tuple, Type
 
 import tcod
@@ -11,6 +12,15 @@ from .monsters import Species
 
 if TYPE_CHECKING:
     from .ai import AI
+
+class RenderOrder(Enum):
+    '''
+    These values indicate the order that an Entity should be rendered. Higher values are rendered later and therefore on
+    top of items at with lower orderings.
+    '''
+    ITEM = 1000
+    ACTOR = 2000
+    HERO = 3000
 
 class Entity:
     '''A single-tile drawable entity with a symbol and position
@@ -34,6 +44,7 @@ class Entity:
     def __init__(self, symbol: str, *,
                  position: Optional[Point] = None,
                  blocks_movement: Optional[bool] = True,
+                 render_order: RenderOrder = RenderOrder.ITEM,
                  fg: Optional[Tuple[int, int, int]] = None,
                  bg: Optional[Tuple[int, int, int]] = None):
         self.position = position if position else Point()
@@ -41,6 +52,7 @@ class Entity:
         self.background = bg
         self.symbol = symbol
         self.blocks_movement = blocks_movement
+        self.render_order = render_order
 
     def print_to_console(self, console: tcod.Console) -> None:
         '''Render this Entity to the console'''
@@ -56,11 +68,12 @@ class Actor(Entity):
     def __init__(self, symbol: str, *,
                  position: Optional[Point] = None,
                  blocks_movement: Optional[bool] = True,
+                 render_order: RenderOrder = RenderOrder.ACTOR,
                  ai: Optional[Type['AI']] = None,
                  fighter: Optional[Fighter] = None,
                  fg: Optional[Tuple[int, int, int]] = None,
                  bg: Optional[Tuple[int, int, int]] = None):
-        super().__init__(symbol, position=position, blocks_movement=blocks_movement, fg=fg, bg=bg)
+        super().__init__(symbol, position=position, blocks_movement=blocks_movement, fg=fg, bg=bg, render_order=render_order)
 
         # Components
         self.ai = ai
@@ -90,6 +103,7 @@ class Hero(Actor):
         super().__init__('@',
              position=position,
              fighter=Fighter(maximum_hit_points=30, attack_power=5, defense=2),
+             render_order=RenderOrder.HERO,
              fg=tuple(tcod.white))
 
     @property
@@ -146,6 +160,7 @@ class Item(Entity):
         super().__init__(kind.symbol,
                          position=position,
                          blocks_movement=False,
+                         render_order=RenderOrder.ITEM,
                          fg=kind.foreground_color,
                          bg=kind.background_color)
         self.kind = kind

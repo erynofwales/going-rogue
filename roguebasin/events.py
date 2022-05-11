@@ -69,11 +69,9 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
 
             if result.success:
-                LOG.info('Action succeded!')
                 break
 
             if result.done:
-                LOG.info('Action failed!')
                 break
 
         return result

@@ -1,7 +1,9 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import argparse
+import json
 import logging
+import logging.config
 import os.path
 import sys
 import tcod
@@ -23,28 +25,50 @@ def parse_args(argv, *a, **kw):
     return args
 
 def init_logging(args):
-    root_logger = logging.getLogger('')
-    root_logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    '''Set up the logging system by (preferrably) reading a logging configuration file.'''
+    logging_config_path = find_logging_config()
+    if logging_config_path:
+        with open(logging_config_path, encoding='utf-8') as logging_config_file:
+            logging_config = json.load(logging_config_file)
+            logging.config.dictConfig(logging_config)
+        LOG.info('Found logging configuration at %s', logging_config_path)
+    else:
+        root_logger = logging.getLogger('')
+        root_logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-    stderr_handler = logging.StreamHandler()
-    stderr_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s: %(message)s"))
+        stderr_handler = logging.StreamHandler()
+        stderr_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s: %(message)s"))
 
-    root_logger.addHandler(stderr_handler)
+        root_logger.addHandler(stderr_handler)
+
+def walk_up_directories_of_path(path):
+    while path and path != '/':
+        path = os.path.dirname(path)
+        yield path
 
 def find_fonts_directory():
     '''Walk up the filesystem tree from this script to find a fonts/ directory.'''
-    parent_dir = os.path.dirname(__file__)
-    while parent_dir and parent_dir != '/':
+    for parent_dir in walk_up_directories_of_path(__file__):
         possible_fonts_dir = os.path.join(parent_dir, 'fonts')
-        LOG.debug('Checking for fonts dir at %s', possible_fonts_dir)
         if os.path.isdir(possible_fonts_dir):
             LOG.info('Found fonts dir %s', possible_fonts_dir)
             break
-        parent_dir = os.path.dirname(parent_dir)
     else:
         return None
 
     return possible_fonts_dir
+
+def find_logging_config():
+    '''Walk up the filesystem from this script to find a logging_config.json'''
+    for parent_dir in walk_up_directories_of_path(__file__):
+        possible_logging_config_file = os.path.join(parent_dir, 'logging_config.json')
+        if os.path.isfile(possible_logging_config_file):
+            LOG.info('Found logging config file %s', possible_logging_config_file)
+            break
+    else:
+        return None
+
+    return possible_logging_config_file
 
 def main(argv):
     args = parse_args(argv[1:], prog=argv[0])

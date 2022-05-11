@@ -57,12 +57,12 @@ class Engine:
                 continue
 
             floor = list(room.walkable_tiles)
-            while True:
-                random_start_position = random.choice(floor)
-                if not any(ent.position == random_start_position for ent in self.entities):
-                    break
-
             for _ in range(2):
+                while True:
+                    random_start_position = random.choice(floor)
+                    if not any(ent.position == random_start_position for ent in self.entities):
+                        break
+
                 spawn_monster_chance = random.random()
                 if spawn_monster_chance > 0.8:
                     monster = Monster(monsters.Troll, ai_class=HostileEnemy, position=random_start_position)
@@ -78,7 +78,10 @@ class Engine:
         '''Print the whole game to the given console.'''
         self.map.print_to_console(console)
 
-        for ent in self.entities:
+        hp, max_hp = self.hero.fighter.hit_points, self.hero.fighter.maximum_hit_points
+        console.print(x=1, y=47, string=f'HP: {hp}/{max_hp}')
+
+        for ent in sorted(self.entities, key=lambda e: e.render_order.value):
             # Only print entities that are in the field of view
             if not self.map.visible[tuple(ent.position)]:
                 continue

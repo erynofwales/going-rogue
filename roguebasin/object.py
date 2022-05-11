@@ -118,7 +118,6 @@ class Hero(Actor):
     def __str__(self) -> str:
         return f'{self.symbol}[{self.position}][{self.fighter.hit_points}/{self.fighter.maximum_hit_points}]'
 
-
 class Monster(Actor):
     '''An instance of a Species'''
 

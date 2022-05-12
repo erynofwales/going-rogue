@@ -101,6 +101,9 @@ class Action:
         '''Create an ActionResult indicating success with no follow-up'''
         return ActionResult(self, success=True)
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__} for {self.actor!s}'
+
     def __repr__(self):
         return f'{self.__class__.__name__}({self.actor!r})'
 
@@ -126,6 +129,9 @@ class MoveAction(Action):
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.actor!r}, {self.direction!r})'
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__} toward {self.direction} by {self.actor!s}'
 
 class BumpAction(MoveAction):
     '''Attempt to perform a movement action in a direction.

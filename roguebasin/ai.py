@@ -15,7 +15,7 @@ from .object import Entity
 if TYPE_CHECKING:
     from .engine import Engine
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('ai')
 
 class AI(Component):
     def __init__(self, entity: Entity) -> None:
@@ -33,16 +33,26 @@ class HostileEnemy(AI):
             pov=tuple(self.entity.position),
             radius=self.entity.sight_radius)
 
+        if engine.map.visible[tuple(self.entity.position)]:
+            LOG.debug("AI for %s", self.entity)
+
         hero_position = engine.hero.position
         hero_is_visible = visible_tiles[hero_position.x, hero_position.y]
 
         if hero_is_visible:
             path_to_hero = self.get_path_to(hero_position, engine)
+            assert len(path_to_hero) > 0, f'{self.entity} attempting to find a path to hero while on top of the hero!'
+
             entity_position = self.entity.position
 
-            next_position = path_to_hero.pop(0) if len(path_to_hero) else hero_position
+            if engine.map.visible[tuple(self.entity.position)]:
+                LOG.debug('|-> Path to hero %s', path_to_hero)
+
+            next_position = path_to_hero.pop(0) if len(path_to_hero) > 1 else hero_position
             direction_to_next_position = entity_position.direction_to_adjacent_point(next_position)
-            LOG.info('Hero is visible to %s, bumping %s (%s)', self.entity, direction_to_next_position, next_position)
+
+            if engine.map.visible[tuple(self.entity.position)]:
+                LOG.info('`-> Hero is visible to %s, bumping %s (%s)', self.entity, direction_to_next_position, next_position)
 
             return BumpAction(self.entity, direction_to_next_position)
         else:
@@ -57,12 +67,14 @@ class HostileEnemy(AI):
                     overlaps_existing_entity = any(new_position == ent.position for ent in engine.entities)
                     tile_is_walkable = engine.map.tile_is_walkable(new_position)
                     if not overlaps_existing_entity and tile_is_walkable:
-                        LOG.info('Hero is NOT visible to %s, bumping %s randomly', self.entity, direction)
+                        if engine.map.visible[tuple(self.entity.position)]:
+                            LOG.info('Hero is NOT visible to %s, bumping %s randomly', self.entity, direction)
                         action = BumpAction(self.entity, direction)
                         break
                 else:
                     # If this entity somehow can't move anywhere, just wait
-                    LOG.info("Hero is NOT visible to %s and it can't move anywhere, waiting", self.entity)
+                    if engine.map.visible[tuple(self.entity.position)]:
+                        LOG.info("Hero is NOT visible to %s and it can't move anywhere, waiting", self.entity)
                     action = WaitAction(self.entity)
 
                 return action

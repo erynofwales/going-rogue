@@ -16,7 +16,7 @@
     },
     "loggers": {
         "ai": {
-            "level": "DEBUG",
+            "level": "ERROR",
             "handlers": ["console"],
             "propagate": false
         },

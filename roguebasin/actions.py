@@ -28,7 +28,7 @@ from .object import Actor, Item
 if TYPE_CHECKING:
     from .engine import Engine
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('actions')
 
 class ActionResult:
     '''The result of an Action.
@@ -158,12 +158,12 @@ class BumpAction(MoveAction):
         else:
             entity_occupying_position = None
 
-        LOG.info('Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
-                 self.actor,
-                 new_position,
-                 position_is_in_bounds,
-                 position_is_walkable,
-                 entity_occupying_position)
+        LOG.debug('Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
+                  self.actor,
+                  new_position,
+                  position_is_in_bounds,
+                  position_is_walkable,
+                  entity_occupying_position)
 
         if not position_is_in_bounds or not position_is_walkable:
             return self.failure()
@@ -180,7 +180,7 @@ class WalkAction(MoveAction):
     def perform(self, engine: 'Engine') -> ActionResult:
         new_position = self.actor.position + self.direction
 
-        LOG.info('Moving %s to %s', self.actor, new_position)
+        LOG.debug('Moving %s to %s', self.actor, new_position)
         self.actor.position = new_position
 
         return self.success()
@@ -200,11 +200,11 @@ class MeleeAction(MoveAction):
             return self.failure()
 
         damage = self.actor.fighter.attack_power - self.target.fighter.defense
-        if damage > 0:
-            LOG.info('%s attacks %s for %d damage!', self.actor, self.target, damage)
+        if damage > 0 and self.target:
+            LOG.debug('%s attacks %s for %d damage!', self.actor, self.target, damage)
             self.target.fighter.hit_points -= damage
         else:
-            LOG.info('%s attacks %s but does no damage!', self.actor, self.target)
+            LOG.debug('%s attacks %s but does no damage!', self.actor, self.target)
 
         if self.target.fighter.is_dead:
             LOG.info('%s is dead!', self.target)
@@ -216,18 +216,18 @@ class WaitAction(Action):
     '''Wait a turn'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        LOG.info('%s is waiting a turn', self.actor)
+        LOG.debug('%s is waiting a turn', self.actor)
         return self.success()
 
 class DieAction(Action):
     '''Kill an Actor'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        LOG.info('%s dies', self.actor)
+        LOG.debug('%s dies', self.actor)
         engine.entities.remove(self.actor)
 
         if self.actor.yields_corpse_on_death:
-            LOG.info('%s leaves a corpse behind', self.actor)
+            LOG.debug('%s leaves a corpse behind', self.actor)
             corpse = Item(kind=items.Corpse, name=f'{self.actor.name} Corpse', position=self.actor.position)
             return ActionResult(self, alternate=DropItemAction(self.actor, corpse))
 

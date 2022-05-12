@@ -2,6 +2,7 @@
 
 '''A bunch of geometric primitives'''
 
+import math
 from dataclasses import dataclass
 from typing import Any, Iterator, Optional, overload
 
@@ -34,6 +35,10 @@ class Point:
             return direction
 
         return None
+
+    def euclidean_distance_to(self, other: 'Point') -> float:
+        '''Compute the Euclidean distance to another Point'''
+        return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
     @overload
     def __add__(self, other: 'Vector') -> 'Point':

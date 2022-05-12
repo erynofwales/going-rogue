@@ -1,14 +1,13 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import logging
-from os import path
 import random
 from typing import TYPE_CHECKING, List, Optional
 
 import numpy as np
 import tcod
 
-from .actions import Action, BumpAction, MeleeAction, WaitAction
+from .actions import Action, BumpAction, WaitAction
 from .components import Component
 from .geometry import Direction, Point
 from .object import Entity

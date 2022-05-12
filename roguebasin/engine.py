@@ -45,10 +45,7 @@ class Engine:
 
         self.rng = tcod.random.Random()
         self.map = Map(configuration.map_size)
-
-        first_room = self.map.generator.rooms[0]
-        hero_start_position = first_room.center
-        self.hero = Hero(position=hero_start_position)
+        self.hero = Hero(position=self.map.generator.rooms[0].center)
 
         self.entities: MutableSet[Entity] = {self.hero}
         for room in self.map.rooms:
@@ -89,6 +86,7 @@ class Engine:
 
     def update_field_of_view(self) -> None:
         '''Compute visible area of the map based on the player's position and point of view.'''
+        # FIXME: Move this to the Map class
         self.map.visible[:] = tcod.map.compute_fov(
             self.map.tiles['transparent'],
             tuple(self.hero.position),

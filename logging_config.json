@@ -15,7 +15,30 @@
         }
     },
     "loggers": {
+        "ai": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": false
+        },
+        "actions": {
+            "level": "INFO",
+            "handlers": ["console"]
+        },
         "actions.movement": {
+            "level": "ERROR",
+            "handlers": ["console"]
+        },
+        "actions.tree": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": false
+        },
+        "events": {
+            "level": "WARN",
+            "handlers": ["console"],
+            "propagate": false
+        },
+        "visible": {
             "level": "DEBUG",
             "handlers": ["console"]
         }

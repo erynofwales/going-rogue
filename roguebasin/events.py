@@ -32,18 +32,25 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         '''Handle the given event. Transform that event into an Action via an EventHandler and perform it.'''
         action = self.dispatch(event)
 
+        # Unhandled event. Ignore it.
         if not action:
+            LOG.debug('Unhandled event: %s', event)
             return
 
         result = self.perform_action_until_done(action)
 
-        # Action failed, so do nothing further.
+        # Player's action failed, don't proceed with turn.
         if not result.success and result.done:
             return
 
-        # Copy the list so we only act on the entities that exist at the start of this turn
-        entities = list(self.engine.entities)
-        for ent in entities:
+        # Copy the list so we only act on the entities that exist at the start of this turn. Sort it by Euclidean
+        # distance to the Hero, so entities closer to the hero act first.
+        hero_position = self.engine.hero.position
+        entities = sorted(
+            self.engine.entities,
+            key=lambda e: e.position.euclidean_distance_to(hero_position))
+
+        for i, ent in enumerate(entities):
             if not isinstance(ent, Actor):
                 continue
 
@@ -62,16 +69,13 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
 
         while not result.done:
-            alternate = result.alternate
-            assert alternate is not None, f'Action {result.action} incomplete but no alternate action given'
+            action = result.alternate
+            assert action is not None, f'Action {result.action} incomplete but no alternate action given'
 
-            result = alternate.perform(self.engine)
+            result = action.perform(self.engine)
             LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
 
             if result.success:
-                break
-
-            if result.done:
                 break
 
         return result
@@ -103,7 +107,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             case tcod.event.KeySym.y:
                 action = BumpAction(hero, Direction.NorthWest)
             case tcod.event.KeySym.SPACE:
-                action = RegenerateRoomsAction()
+                action = RegenerateRoomsAction(hero)
             case tcod.event.KeySym.PERIOD:
                 action = WaitAction(hero)
 

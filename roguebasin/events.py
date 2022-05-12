@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from .engine import Engine
 
 LOG = logging.getLogger('events')
+ACTIONS_TREE_LOG = logging.getLogger('actions.tree')
 
 class EventHandler(tcod.event.EventDispatch[Action]):
     '''Handler of `tcod` events'''
@@ -37,6 +38,9 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             LOG.debug('Unhandled event: %s', event)
             return
 
+        ACTIONS_TREE_LOG.info('Processing Hero Actions')
+        ACTIONS_TREE_LOG.info('|-> %s', action.actor)
+
         result = self.perform_action_until_done(action)
 
         # Player's action failed, don't proceed with turn.
@@ -50,6 +54,8 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             self.engine.entities,
             key=lambda e: e.position.euclidean_distance_to(hero_position))
 
+        ACTIONS_TREE_LOG.info('Processing Entity Actions')
+
         for i, ent in enumerate(entities):
             if not isinstance(ent, Actor):
                 continue
@@ -57,6 +63,9 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             ent_ai = ent.ai
             if not ent_ai:
                 continue
+
+            if self.engine.map.visible[tuple(ent.position)]:
+                ACTIONS_TREE_LOG.info('%s-> %s', '|' if i < len(entities) - 1 else '`', ent)
 
             action = ent_ai.act(self.engine)
             self.perform_action_until_done(action)
@@ -66,14 +75,36 @@ class EventHandler(tcod.event.EventDispatch[Action]):
     def perform_action_until_done(self, action: Action) -> ActionResult:
         '''Perform the given action and any alternate follow-up actions until the action chain is done.'''
         result = action.perform(self.engine)
-        LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
+
+        if ACTIONS_TREE_LOG.isEnabledFor(logging.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
+            if result.alternate:
+                alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
+            else:
+                alternate_string = str(result.alternate)
+            ACTIONS_TREE_LOG.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                '|' if not result.success or not result.done else '`',
+                action,
+                result.success,
+                result.done,
+                alternate_string)
 
         while not result.done:
             action = result.alternate
             assert action is not None, f'Action {result.action} incomplete but no alternate action given'
 
             result = action.perform(self.engine)
-            LOG.debug('Performed action success=%s done=%s alternate=%s', result.success, result.done, result.alternate)
+
+            if ACTIONS_TREE_LOG.isEnabledFor(logging.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
+                if result.alternate:
+                    alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
+                else:
+                    alternate_string = str(result.alternate)
+                ACTIONS_TREE_LOG.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                    '|' if not result.success or not result.done else '`',
+                    action,
+                    result.success,
+                    result.done,
+                    alternate_string)
 
             if result.success:
                 break

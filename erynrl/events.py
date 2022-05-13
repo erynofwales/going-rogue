@@ -134,6 +134,8 @@ class EventHandler(tcod.event.EventDispatch[Action]):
                 action = BumpAction(hero, Direction.NorthEast)
             case tcod.event.KeySym.y:
                 action = BumpAction(hero, Direction.NorthWest)
+            case tcod.event.KeySym.ESCAPE:
+                action = ExitAction(hero)
             case tcod.event.KeySym.SPACE:
                 action = RegenerateRoomsAction(hero)
             case tcod.event.KeySym.PERIOD:

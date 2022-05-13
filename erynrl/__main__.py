@@ -37,6 +37,14 @@ def find_fonts_directory():
     return possible_fonts_dir
 
 def main(argv):
+    '''
+    Beginning of the game
+
+    Parameters
+    ----------
+    argv : List[str]
+        A standard argument list, most likely you'll get this from sys.argv
+    '''
     args = parse_args(argv[1:], prog=argv[0])
 
     log.init()

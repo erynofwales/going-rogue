@@ -2,20 +2,17 @@
 
 '''Defines event handling mechanisms.'''
 
-import logging
 from typing import Optional, TYPE_CHECKING
 
 import tcod
 
+from . import log
 from .actions import Action, ActionResult, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
 from .geometry import Direction
 from .object import Actor
 
 if TYPE_CHECKING:
     from .engine import Engine
-
-LOG = logging.getLogger('events')
-ACTIONS_TREE_LOG = logging.getLogger('actions.tree')
 
 class EventHandler(tcod.event.EventDispatch[Action]):
     '''Handler of `tcod` events'''
@@ -35,11 +32,11 @@ class EventHandler(tcod.event.EventDispatch[Action]):
 
         # Unhandled event. Ignore it.
         if not action:
-            LOG.debug('Unhandled event: %s', event)
+            log.EVENTS.debug('Unhandled event: %s', event)
             return
 
-        ACTIONS_TREE_LOG.info('Processing Hero Actions')
-        ACTIONS_TREE_LOG.info('|-> %s', action.actor)
+        log.ACTIONS_TREE.info('Processing Hero Actions')
+        log.ACTIONS_TREE.info('|-> %s', action.actor)
 
         result = self.perform_action_until_done(action)
 
@@ -54,7 +51,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             self.engine.entities,
             key=lambda e: e.position.euclidean_distance_to(hero_position))
 
-        ACTIONS_TREE_LOG.info('Processing Entity Actions')
+        log.ACTIONS_TREE.info('Processing Entity Actions')
 
         for i, ent in enumerate(entities):
             if not isinstance(ent, Actor):
@@ -65,7 +62,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
                 continue
 
             if self.engine.map.visible[tuple(ent.position)]:
-                ACTIONS_TREE_LOG.info('%s-> %s', '|' if i < len(entities) - 1 else '`', ent)
+                log.ACTIONS_TREE.info('%s-> %s', '|' if i < len(entities) - 1 else '`', ent)
 
             action = ent_ai.act(self.engine)
             self.perform_action_until_done(action)
@@ -76,17 +73,17 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         '''Perform the given action and any alternate follow-up actions until the action chain is done.'''
         result = action.perform(self.engine)
 
-        if ACTIONS_TREE_LOG.isEnabledFor(logging.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
+        if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
             if result.alternate:
                 alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
             else:
                 alternate_string = str(result.alternate)
-            ACTIONS_TREE_LOG.info('|   %s-> %s => success=%s done=%s alternate=%s',
-                '|' if not result.success or not result.done else '`',
-                action,
-                result.success,
-                result.done,
-                alternate_string)
+                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                    '|' if not result.success or not result.done else '`',
+                    action,
+                    result.success,
+                    result.done,
+                    alternate_string)
 
         while not result.done:
             action = result.alternate
@@ -94,12 +91,12 @@ class EventHandler(tcod.event.EventDispatch[Action]):
 
             result = action.perform(self.engine)
 
-            if ACTIONS_TREE_LOG.isEnabledFor(logging.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
+            if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
                 if result.alternate:
                     alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
                 else:
                     alternate_string = str(result.alternate)
-                ACTIONS_TREE_LOG.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
                     '|' if not result.success or not result.done else '`',
                     action,
                     result.success,

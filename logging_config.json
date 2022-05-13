@@ -15,30 +15,30 @@
         }
     },
     "loggers": {
-        "ai": {
+        "erynrl.ai": {
             "level": "ERROR",
             "handlers": ["console"],
             "propagate": false
         },
-        "actions": {
+        "erynrl.actions": {
             "level": "INFO",
             "handlers": ["console"]
         },
-        "actions.movement": {
+        "erynrl.actions.movement": {
             "level": "ERROR",
             "handlers": ["console"]
         },
-        "actions.tree": {
+        "erynrl.actions.tree": {
             "level": "INFO",
             "handlers": ["console"],
             "propagate": false
         },
-        "events": {
+        "erynrl.events": {
             "level": "WARN",
             "handlers": ["console"],
             "propagate": false
         },
-        "visible": {
+        "erynrl.visible": {
             "level": "DEBUG",
             "handlers": ["console"]
         }

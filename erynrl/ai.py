@@ -1,12 +1,12 @@
 # Eryn Wells <eryn@erynwells.me>
 
-import logging
 import random
 from typing import TYPE_CHECKING, List, Optional
 
 import numpy as np
 import tcod
 
+from . import log
 from .actions import Action, BumpAction, WaitAction
 from .components import Component
 from .geometry import Direction, Point
@@ -14,8 +14,6 @@ from .object import Entity
 
 if TYPE_CHECKING:
     from .engine import Engine
-
-LOG = logging.getLogger('ai')
 
 class AI(Component):
     def __init__(self, entity: Entity) -> None:
@@ -34,7 +32,7 @@ class HostileEnemy(AI):
             radius=self.entity.sight_radius)
 
         if engine.map.visible[tuple(self.entity.position)]:
-            LOG.debug("AI for %s", self.entity)
+            log.AI.debug("AI for %s", self.entity)
 
         hero_position = engine.hero.position
         hero_is_visible = visible_tiles[hero_position.x, hero_position.y]
@@ -46,13 +44,13 @@ class HostileEnemy(AI):
             entity_position = self.entity.position
 
             if engine.map.visible[tuple(self.entity.position)]:
-                LOG.debug('|-> Path to hero %s', path_to_hero)
+                log.AI.debug('|-> Path to hero %s', path_to_hero)
 
             next_position = path_to_hero.pop(0) if len(path_to_hero) > 1 else hero_position
             direction_to_next_position = entity_position.direction_to_adjacent_point(next_position)
 
             if engine.map.visible[tuple(self.entity.position)]:
-                LOG.info('`-> Hero is visible to %s, bumping %s (%s)', self.entity, direction_to_next_position, next_position)
+                log.AI.info('`-> Hero is visible to %s, bumping %s (%s)', self.entity, direction_to_next_position, next_position)
 
             return BumpAction(self.entity, direction_to_next_position)
         else:
@@ -68,13 +66,13 @@ class HostileEnemy(AI):
                     tile_is_walkable = engine.map.tile_is_walkable(new_position)
                     if not overlaps_existing_entity and tile_is_walkable:
                         if engine.map.visible[tuple(self.entity.position)]:
-                            LOG.info('Hero is NOT visible to %s, bumping %s randomly', self.entity, direction)
+                            log.AI.info('Hero is NOT visible to %s, bumping %s randomly', self.entity, direction)
                         action = BumpAction(self.entity, direction)
                         break
                 else:
                     # If this entity somehow can't move anywhere, just wait
                     if engine.map.visible[tuple(self.entity.position)]:
-                        LOG.info("Hero is NOT visible to %s and it can't move anywhere, waiting", self.entity)
+                        log.AI.info("Hero is NOT visible to %s and it can't move anywhere, waiting", self.entity)
                     action = WaitAction(self.entity)
 
                 return action

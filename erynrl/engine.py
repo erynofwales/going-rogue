@@ -2,20 +2,18 @@
 
 '''Defines the core game engine.'''
 
-import logging
 import random
 from dataclasses import dataclass
 from typing import MutableSet
 
 import tcod
 
+from . import log
 from . import monsters
 from .ai import HostileEnemy
 from .geometry import Size
 from .map import Map
 from .object import Entity, Hero, Monster
-
-LOG = logging.getLogger('engine')
 
 @dataclass
 class Configuration:
@@ -66,7 +64,7 @@ class Engine:
                 else:
                     monster = Monster(monsters.Orc, ai_class=HostileEnemy, position=random_start_position)
 
-                LOG.info('Spawning %s', monster)
+                log.ENGINE.info('Spawning %s', monster)
                 self.entities.add(monster)
 
         self.update_field_of_view()

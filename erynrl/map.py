@@ -1,6 +1,5 @@
 # Eryn Wells <eryn@erynwells.me>
 
-import logging
 import random
 from dataclasses import dataclass
 from typing import Iterator, List, Optional
@@ -8,10 +7,9 @@ from typing import Iterator, List, Optional
 import numpy as np
 import tcod
 
+from . import log
 from .geometry import Direction, Point, Rect, Size
 from .tile import Empty, Floor, Shroud, Wall
-
-LOG = logging.getLogger('map')
 
 class Map:
     def __init__(self, size: Size):
@@ -120,7 +118,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
             node_bounds = self.__rect_from_bsp_node(node)
 
             if node.children:
-                LOG.debug(node_bounds)
+                log.MAP.debug(node_bounds)
 
                 left_room: RectangularRoom = getattr(node.children[0], room_attrname)
                 right_room: RectangularRoom = getattr(node.children[1], room_attrname)
@@ -128,8 +126,8 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                 left_room_bounds = left_room.bounds
                 right_room_bounds = right_room.bounds
 
-                LOG.debug(' left: %s, %s', node.children[0], left_room_bounds)
-                LOG.debug('right: %s, %s', node.children[1], right_room_bounds)
+                log.MAP.debug(' left: %s, %s', node.children[0], left_room_bounds)
+                log.MAP.debug('right: %s, %s', node.children[1], right_room_bounds)
 
                 start_point = left_room_bounds.midpoint
                 end_point = right_room_bounds.midpoint
@@ -140,16 +138,16 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                 else:
                     corner = Point(start_point.x, end_point.y)
 
-                LOG.debug('Digging a tunnel between %s and %s with corner %s', start_point, end_point, corner)
-                LOG.debug('|-> start: %s', left_room_bounds)
-                LOG.debug('`->   end: %s', right_room_bounds)
+                log.MAP.debug('Digging a tunnel between %s and %s with corner %s', start_point, end_point, corner)
+                log.MAP.debug('|-> start: %s', left_room_bounds)
+                log.MAP.debug('`->   end: %s', right_room_bounds)
 
                 for x, y in tcod.los.bresenham(tuple(start_point), tuple(corner)).tolist():
                     tiles[x, y] = Floor
                 for x, y in tcod.los.bresenham(tuple(corner), tuple(end_point)).tolist():
                     tiles[x, y] = Floor
             else:
-                LOG.debug('%s (room) %s', node_bounds, node)
+                log.MAP.debug('%s (room) %s', node_bounds, node)
 
                 # Generate a room size between minimum_room_size and maximum_room_size. The minimum value is
                 # straight-forward, but the maximum value needs to be clamped between minimum_room_size and the size of
@@ -162,7 +160,7 @@ class RoomsAndCorridorsGenerator(MapGenerator):
                                node.y + self.rng.randint(1, max(1, node.height - size.height - 1)))
                 bounds = Rect(origin, size)
 
-                LOG.debug('`-> %s', bounds)
+                log.MAP.debug('`-> %s', bounds)
 
                 room = RectangularRoom(bounds)
                 setattr(node, room_attrname, room)

@@ -220,6 +220,12 @@ class WaitAction(Action):
 
     def perform(self, engine: 'Engine') -> ActionResult:
         log.ACTIONS.debug('%s is waiting a turn', self.actor)
+
+        if self.actor == engine.hero:
+            should_recover_hit_points = self.actor.fighter.passively_recover_hit_points()
+            if should_recover_hit_points:
+                return ActionResult(self, alternate=HealAction(self.actor, 1))
+
         return self.success()
 
 class DieAction(Action):
@@ -249,4 +255,21 @@ class DropItemAction(Action):
 
     def perform(self, engine: 'Engine') -> ActionResult:
         engine.entities.add(self.item)
+        return self.success()
+
+class HealAction(Action):
+    '''Heal a target actor some number of hit points'''
+
+    def __init__(self, actor: 'Actor', hit_points_to_recover: int):
+        super().__init__(actor)
+        self.hit_points_to_recover = hit_points_to_recover
+
+    def perform(self, engine: 'Engine') -> ActionResult:
+        fighter = self.actor.fighter
+        if not fighter:
+            log.ACTIONS.error('Attempted to heal %s but it has no hit points', self.actor)
+            return self.failure()
+
+        fighter.hit_points += self.hit_points_to_recover
+
         return self.success()

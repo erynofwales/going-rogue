@@ -10,11 +10,12 @@ import tcod
 
 from . import log
 from . import monsters
+from .actions import Action, ActionResult
 from .ai import HostileEnemy
 from .events import MainGameEventHandler
 from .geometry import Size
 from .map import Map
-from .object import Entity, Hero, Monster
+from .object import Actor, Entity, Hero, Monster
 
 if TYPE_CHECKING:
     from .events import EventHandler
@@ -96,6 +97,77 @@ class Engine:
             context.present(console)
 
             self.event_handler.wait_for_events()
+
+    def process_hero_action(self, action: Action) -> ActionResult:
+        '''Process an Action for the hero.'''
+        log.ACTIONS_TREE.info('Processing Hero Actions')
+        log.ACTIONS_TREE.info('|-> %s', action.actor)
+
+        return self._perform_action_until_done(action)
+
+    def process_entity_actions(self):
+        hero_position = self.hero.position
+
+        # Copy the list so we only act on the entities that exist at the start of this turn. Sort it by Euclidean
+        # distance to the Hero, so entities closer to the hero act first.
+        entities = sorted(
+            self.entities,
+            key=lambda e: e.position.euclidean_distance_to(hero_position))
+
+        log.ACTIONS_TREE.info('Processing Entity Actions')
+
+        for i, ent in enumerate(entities):
+            if not isinstance(ent, Actor):
+                continue
+
+            ent_ai = ent.ai
+            if not ent_ai:
+                continue
+
+            if self.map.visible[tuple(ent.position)]:
+                log.ACTIONS_TREE.info('%s-> %s', '|' if i < len(entities) - 1 else '`', ent)
+
+            action = ent_ai.act(self)
+            self._perform_action_until_done(action)
+
+    def _perform_action_until_done(self, action: Action) -> ActionResult:
+        '''Perform the given action and any alternate follow-up actions until the action chain is done.'''
+        result = action.perform(self)
+
+        if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.map.visible[tuple(action.actor.position)]:
+            if result.alternate:
+                alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
+            else:
+                alternate_string = str(result.alternate)
+                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                    '|' if not result.success or not result.done else '`',
+                    action,
+                    result.success,
+                    result.done,
+                    alternate_string)
+
+        while not result.done:
+            action = result.alternate
+            assert action is not None, f'Action {result.action} incomplete but no alternate action given'
+
+            result = action.perform(self)
+
+            if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.map.visible[tuple(action.actor.position)]:
+                if result.alternate:
+                    alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
+                else:
+                    alternate_string = str(result.alternate)
+                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                    '|' if not result.success or not result.done else '`',
+                    action,
+                    result.success,
+                    result.done,
+                    alternate_string)
+
+            if result.success:
+                break
+
+        return result
 
     def update_field_of_view(self) -> None:
         '''Compute visible area of the map based on the player's position and point of view.'''

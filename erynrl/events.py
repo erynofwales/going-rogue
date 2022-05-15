@@ -7,9 +7,8 @@ from typing import Optional, TYPE_CHECKING
 import tcod
 
 from . import log
-from .actions import Action, ActionResult, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
+from .actions import Action, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
 from .geometry import Direction
-from .object import Actor
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -35,78 +34,14 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             log.EVENTS.debug('Unhandled event: %s', event)
             return
 
-        log.ACTIONS_TREE.info('Processing Hero Actions')
-        log.ACTIONS_TREE.info('|-> %s', action.actor)
-
-        result = self.perform_action_until_done(action)
+        result = self.engine.process_hero_action(action)
 
         # Player's action failed, don't proceed with turn.
         if not result.success and result.done:
             return
 
-        # Copy the list so we only act on the entities that exist at the start of this turn. Sort it by Euclidean
-        # distance to the Hero, so entities closer to the hero act first.
-        hero_position = self.engine.hero.position
-        entities = sorted(
-            self.engine.entities,
-            key=lambda e: e.position.euclidean_distance_to(hero_position))
-
-        log.ACTIONS_TREE.info('Processing Entity Actions')
-
-        for i, ent in enumerate(entities):
-            if not isinstance(ent, Actor):
-                continue
-
-            ent_ai = ent.ai
-            if not ent_ai:
-                continue
-
-            if self.engine.map.visible[tuple(ent.position)]:
-                log.ACTIONS_TREE.info('%s-> %s', '|' if i < len(entities) - 1 else '`', ent)
-
-            action = ent_ai.act(self.engine)
-            self.perform_action_until_done(action)
-
+        self.engine.process_entity_actions()
         self.engine.update_field_of_view()
-
-    def perform_action_until_done(self, action: Action) -> ActionResult:
-        '''Perform the given action and any alternate follow-up actions until the action chain is done.'''
-        result = action.perform(self.engine)
-
-        if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
-            if result.alternate:
-                alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
-            else:
-                alternate_string = str(result.alternate)
-                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
-                    '|' if not result.success or not result.done else '`',
-                    action,
-                    result.success,
-                    result.done,
-                    alternate_string)
-
-        while not result.done:
-            action = result.alternate
-            assert action is not None, f'Action {result.action} incomplete but no alternate action given'
-
-            result = action.perform(self.engine)
-
-            if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.engine.map.visible[tuple(action.actor.position)]:
-                if result.alternate:
-                    alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
-                else:
-                    alternate_string = str(result.alternate)
-                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
-                    '|' if not result.success or not result.done else '`',
-                    action,
-                    result.success,
-                    result.done,
-                    alternate_string)
-
-            if result.success:
-                break
-
-        return result
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
         return ExitAction(self.engine.hero)

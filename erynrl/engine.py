@@ -48,12 +48,16 @@ class Engine:
     def __init__(self, configuration: Configuration):
         self.configuration = configuration
 
+        self.current_turn = 1
+        self.did_begin_turn = False
+        self.did_successfully_process_actions_for_turn = False
+
         self.rng = tcod.random.Random()
         self.map = Map(configuration.map_size)
-        self.hero = Hero(position=self.map.generator.rooms[0].center)
 
         self.event_handler: 'EventHandler' = MainGameEventHandler(self)
 
+        self.hero = Hero(position=self.map.generator.rooms[0].center)
         self.entities: MutableSet[Entity] = {self.hero}
         for room in self.map.rooms:
             should_spawn_monster_chance = random.random()
@@ -78,17 +82,20 @@ class Engine:
 
         self.update_field_of_view()
 
+        # Interface elements
         self.hit_points_bar = Bar(position=Point(4, 47), width=20)
 
     def print_to_console(self, console):
         '''Print the whole game to the given console.'''
         self.map.print_to_console(console)
 
-        console.print(x=1, y=47, string=f'HP:')
+        console.print(x=1, y=47, string='HP:')
         hp, max_hp = self.hero.fighter.hit_points, self.hero.fighter.maximum_hit_points
         self.hit_points_bar.percent_filled = hp / max_hp
         self.hit_points_bar.render_to_console(console)
         console.print(x=6, y=47, string=f'{hp}/{max_hp}', fg=color.WHITE)
+
+        console.print(x=1, y=48, string=f'Turn: {self.current_turn}')
 
         for ent in sorted(self.entities, key=lambda e: e.render_order.value):
             # Only print entities that are in the field of view
@@ -103,16 +110,29 @@ class Engine:
             self.print_to_console(console)
             context.present(console)
 
+            self.begin_turn()
             self.event_handler.wait_for_events()
+            self.finish_turn()
 
-    def process_hero_action(self, action: Action) -> ActionResult:
-        '''Process an Action for the hero.'''
+    def process_input_action(self, action: Action) -> ActionResult:
+        '''Process an Action from player input'''
+
         log.ACTIONS_TREE.info('Processing Hero Actions')
         log.ACTIONS_TREE.info('|-> %s', action.actor)
 
-        return self._perform_action_until_done(action)
+        result = self._perform_action_until_done(action)
+
+        # Player's action failed, don't proceed with turn.
+        if not result.success and result.done:
+            self.did_successfully_process_actions_for_turn = False
+            return
+
+        self.did_successfully_process_actions_for_turn = True
+        self.process_entity_actions()
+        self.update_field_of_view()
 
     def process_entity_actions(self):
+        '''Run AI for entities that have them, and process actions from those AIs'''
         hero_position = self.hero.position
 
         # Copy the list so we only act on the entities that exist at the start of this turn. Sort it by Euclidean
@@ -186,6 +206,30 @@ class Engine:
 
         # Visible tiles should be added to the explored list
         self.map.explored |= self.map.visible
+
+    def begin_turn(self) -> None:
+        '''Begin the current turn'''
+        if self.did_begin_turn:
+            return
+
+        if log.ROOT.isEnabledFor(log.INFO):
+            dashes = '-' * 20
+            log.ROOT.info('%s Turn %d %s', dashes, self.current_turn, dashes)
+
+        self.did_begin_turn = True
+
+    def finish_turn(self) -> None:
+        '''Finish the current turn and prepare for the next turn'''
+        if not self.did_successfully_process_actions_for_turn:
+            return
+
+        log.ROOT.info('Completed turn %d successfully', self.current_turn)
+        self._prepare_for_next_turn()
+
+    def _prepare_for_next_turn(self) -> None:
+        self.current_turn += 1
+        self.did_begin_turn = False
+        self.did_successfully_process_actions_for_turn = False
 
     def kill_actor(self, actor: Actor) -> None:
         '''Kill an entity. Remove it from the game.'''

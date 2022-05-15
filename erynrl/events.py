@@ -42,14 +42,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             log.EVENTS.debug('Unhandled event: %s', event)
             return
 
-        result = self.engine.process_hero_action(action)
-
-        # Player's action failed, don't proceed with turn.
-        if not result.success and result.done:
-            return
-
-        self.engine.process_entity_actions()
-        self.engine.update_field_of_view()
+        self.engine.process_input_action(action)
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
         return ExitAction(self.engine.hero)

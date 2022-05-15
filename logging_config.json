@@ -15,6 +15,11 @@
         }
     },
     "loggers": {
+        "erynrl": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": false
+        },
         "erynrl.ai": {
             "level": "ERROR",
             "handlers": ["console"],

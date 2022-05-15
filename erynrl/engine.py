@@ -13,7 +13,9 @@ from . import monsters
 from .actions import Action, ActionResult
 from .ai import HostileEnemy
 from .events import GameOverEventHandler, MainGameEventHandler
-from .geometry import Size
+from .geometry import Point, Size
+from .interface.bar import Bar
+from .interface import color
 from .map import Map
 from .object import Actor, Entity, Hero, Monster
 
@@ -76,12 +78,17 @@ class Engine:
 
         self.update_field_of_view()
 
+        self.hit_points_bar = Bar(position=Point(4, 47), width=20)
+
     def print_to_console(self, console):
         '''Print the whole game to the given console.'''
         self.map.print_to_console(console)
 
+        console.print(x=1, y=47, string=f'HP:')
         hp, max_hp = self.hero.fighter.hit_points, self.hero.fighter.maximum_hit_points
-        console.print(x=1, y=47, string=f'HP: {hp}/{max_hp}')
+        self.hit_points_bar.percent_filled = hp / max_hp
+        self.hit_points_bar.render_to_console(console)
+        console.print(x=6, y=47, string=f'{hp}/{max_hp}', fg=color.WHITE)
 
         for ent in sorted(self.entities, key=lambda e: e.render_order.value):
             # Only print entities that are in the field of view

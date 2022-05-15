@@ -201,6 +201,11 @@ class MeleeAction(MoveAction):
         if damage > 0 and self.target:
             log.ACTIONS.debug('%s attacks %s for %d damage!', self.actor, self.target, damage)
             self.target.fighter.hit_points -= damage
+
+            if self.actor == engine.hero:
+                engine.message_log.add_message(f'You attack the {self.target.name} for {damage} damage!', fg=(127, 255, 127))
+            elif self.target == engine.hero:
+                engine.message_log.add_message(f'The {self.actor.name} attacks you for {damage} damage!', fg=(255, 127, 127))
         else:
             log.ACTIONS.debug('%s attacks %s but does no damage!', self.actor, self.target)
 
@@ -222,6 +227,11 @@ class DieAction(Action):
 
     def perform(self, engine: 'Engine') -> ActionResult:
         engine.kill_actor(self.actor)
+
+        if self.actor == engine.hero:
+            engine.message_log.add_message('You die...', fg=(255, 127, 127))
+        else:
+            engine.message_log.add_message(f'The {self.actor.name} dies', fg=(127, 255, 127))
 
         if self.actor.yields_corpse_on_death:
             log.ACTIONS.debug('%s leaves a corpse behind', self.actor)

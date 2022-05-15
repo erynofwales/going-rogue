@@ -221,8 +221,7 @@ class DieAction(Action):
     '''Kill an Actor'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        log.ACTIONS.debug('%s dies', self.actor)
-        engine.entities.remove(self.actor)
+        engine.kill_actor(self.actor)
 
         if self.actor.yields_corpse_on_death:
             log.ACTIONS.debug('%s leaves a corpse behind', self.actor)

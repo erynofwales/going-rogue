@@ -12,7 +12,7 @@ from . import log
 from . import monsters
 from .actions import Action, ActionResult
 from .ai import HostileEnemy
-from .events import MainGameEventHandler
+from .events import GameOverEventHandler, MainGameEventHandler
 from .geometry import Size
 from .map import Map
 from .object import Actor, Entity, Hero, Monster
@@ -179,3 +179,15 @@ class Engine:
 
         # Visible tiles should be added to the explored list
         self.map.explored |= self.map.visible
+
+    def kill_actor(self, actor: Actor) -> None:
+        '''Kill an entity. Remove it from the game.'''
+
+        if actor == self.hero:
+            # When the hero dies, the game is over.
+            # TODO: Transition to game over state
+            log.ACTIONS.debug('Time to die.')
+            self.event_handler = GameOverEventHandler(self)
+        else:
+            log.ACTIONS.debug('%s dies', actor)
+            self.entities.remove(actor)

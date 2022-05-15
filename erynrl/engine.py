@@ -13,10 +13,11 @@ from . import monsters
 from .actions import Action, ActionResult
 from .ai import HostileEnemy
 from .events import GameOverEventHandler, MainGameEventHandler
-from .geometry import Point, Size
+from .geometry import Point, Rect, Size
 from .interface.bar import Bar
 from .interface import color
 from .map import Map
+from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
 
 if TYPE_CHECKING:
@@ -54,6 +55,7 @@ class Engine:
 
         self.rng = tcod.random.Random()
         self.map = Map(configuration.map_size)
+        self.message_log = MessageLog()
 
         self.event_handler: 'EventHandler' = MainGameEventHandler(self)
 
@@ -83,19 +85,24 @@ class Engine:
         self.update_field_of_view()
 
         # Interface elements
-        self.hit_points_bar = Bar(position=Point(4, 47), width=20)
+        self.hit_points_bar = Bar(position=Point(4, 45), width=20)
+
+        self.message_log.add_message('Greetings adventurer!', fg=(127, 127, 255), stack=False)
 
     def print_to_console(self, console):
         '''Print the whole game to the given console.'''
         self.map.print_to_console(console)
 
-        console.print(x=1, y=47, string='HP:')
+        console.print(x=1, y=45, string='HP:')
         hp, max_hp = self.hero.fighter.hit_points, self.hero.fighter.maximum_hit_points
         self.hit_points_bar.percent_filled = hp / max_hp
         self.hit_points_bar.render_to_console(console)
-        console.print(x=6, y=47, string=f'{hp}/{max_hp}', fg=color.WHITE)
+        console.print(x=6, y=45, string=f'{hp}/{max_hp}', fg=color.WHITE)
 
-        console.print(x=1, y=48, string=f'Turn: {self.current_turn}')
+        console.print(x=1, y=46, string=f'Turn: {self.current_turn}')
+
+        messages_rect = Rect(Point(x=27, y=45), Size(width=40, height=5))
+        self.message_log.render_to_console(console, messages_rect)
 
         for ent in sorted(self.entities, key=lambda e: e.render_order.value):
             # Only print entities that are in the field of view

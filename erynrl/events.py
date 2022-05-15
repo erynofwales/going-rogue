@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from .engine import Engine
 
 class EventHandler(tcod.event.EventDispatch[Action]):
-    '''Handler of `tcod` events'''
+    '''Abstract event handler class'''
 
     def __init__(self, engine: 'Engine'):
         super().__init__()
@@ -26,7 +26,15 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             self.handle_event(event)
 
     def handle_event(self, event: tcod.event.Event) -> None:
-        '''Handle the given event. Transform that event into an Action via an EventHandler and perform it.'''
+        '''
+        Handle an event by transforming it into an Action and processing it until it is completed. If the Action
+        succeeds, also process actions from other Entities.
+
+        Parameters
+        ----------
+        event : tcod.event.Event
+            The event to handle
+        '''
         action = self.dispatch(event)
 
         # Unhandled event. Ignore it.
@@ -45,6 +53,14 @@ class EventHandler(tcod.event.EventDispatch[Action]):
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
         return ExitAction(self.engine.hero)
+
+class MainGameEventHandler(EventHandler):
+    '''
+    Handler of `tcod` events for the main game.
+
+    Receives input from the player and dispatches actions to the game engine to interat with the hero and other objects
+    in the game.
+    '''
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
         action: Optional[Action] = None
@@ -75,5 +91,20 @@ class EventHandler(tcod.event.EventDispatch[Action]):
                 action = RegenerateRoomsAction(hero)
             case tcod.event.KeySym.PERIOD:
                 action = WaitAction(hero)
+
+        return action
+
+class GameOverEventHandler(EventHandler):
+    '''When the game is over (the hero dies, the player quits, etc), this event handler takes over.'''
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
+        action: Optional[Action] = None
+
+        hero = self.engine.hero
+
+        sym = event.sym
+        match sym:
+            case tcod.event.KeySym.ESCAPE:
+                action = ExitAction(hero)
 
         return action

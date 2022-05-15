@@ -25,6 +25,7 @@ class Map:
 
     @property
     def rooms(self) -> List['Room']:
+        '''The list of rooms in the map'''
         return self.generator.rooms
 
     def random_walkable_position(self) -> Point:
@@ -35,9 +36,11 @@ class Map:
         return random_position_in_room
 
     def tile_is_in_bounds(self, point: Point) -> bool:
+        '''Return True if the given point is inside the bounds of the map'''
         return 0 <= point.x < self.size.width and 0 <= point.y < self.size.height
 
     def tile_is_walkable(self, point: Point) -> bool:
+        '''Return True if the tile at the given point is walkable'''
         return self.tiles[point.x, point.y]['walkable']
 
     def print_to_console(self, console: tcod.Console) -> None:

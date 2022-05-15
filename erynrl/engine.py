@@ -4,7 +4,7 @@
 
 import random
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, MutableSet, NoReturn
+from typing import TYPE_CHECKING, MutableSet, NoReturn, Optional
 
 import tcod
 
@@ -58,6 +58,7 @@ class Engine:
         self.message_log = MessageLog()
 
         self.event_handler: 'EventHandler' = MainGameEventHandler(self)
+        self.current_mouse_point: Optional[Point] = None
 
         self.hero = Hero(position=self.map.generator.rooms[0].center)
         self.entities: MutableSet[Entity] = {self.hero}
@@ -104,11 +105,19 @@ class Engine:
         messages_rect = Rect(Point(x=27, y=45), Size(width=40, height=5))
         self.message_log.render_to_console(console, messages_rect)
 
+        entities_at_mouse_position = []
         for ent in sorted(self.entities, key=lambda e: e.render_order.value):
-            # Only print entities that are in the field of view
+            # Only process entities that are in the field of view
             if not self.map.visible[tuple(ent.position)]:
                 continue
+
             ent.print_to_console(console)
+
+            if ent.position == self.current_mouse_point:
+                entities_at_mouse_position.append(ent)
+
+        if len(entities_at_mouse_position) > 0:
+            console.print(x=1, y=43, string=', '.join(e.name for e in entities_at_mouse_position))
 
     def run_event_loop(self, context: tcod.context.Context, console: tcod.Console) -> NoReturn:
         '''Run the event loop forever. This method never returns.'''
@@ -118,7 +127,7 @@ class Engine:
             context.present(console)
 
             self.begin_turn()
-            self.event_handler.wait_for_events()
+            self.event_handler.handle_events(context)
             self.finish_turn()
 
     def process_input_action(self, action: Action) -> ActionResult:
@@ -240,12 +249,10 @@ class Engine:
 
     def kill_actor(self, actor: Actor) -> None:
         '''Kill an entity. Remove it from the game.'''
-
         if actor == self.hero:
             # When the hero dies, the game is over.
-            # TODO: Transition to game over state
-            log.ACTIONS.debug('Time to die.')
+            log.ACTIONS.info('Time to die.')
             self.event_handler = GameOverEventHandler(self)
         else:
-            log.ACTIONS.debug('%s dies', actor)
+            log.ACTIONS.info('%s dies', actor)
             self.entities.remove(actor)

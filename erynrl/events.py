@@ -8,7 +8,7 @@ import tcod
 
 from . import log
 from .actions import Action, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
-from .geometry import Direction
+from .geometry import Direction, Point
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -20,9 +20,10 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         super().__init__()
         self.engine = engine
 
-    def wait_for_events(self):
+    def handle_events(self, context: tcod.context.Context):
         '''Wait for events and handle them.'''
         for event in tcod.event.wait():
+            context.convert_event(event)
             self.handle_event(event)
 
     def handle_event(self, event: tcod.event.Event) -> None:
@@ -86,6 +87,12 @@ class MainGameEventHandler(EventHandler):
                 action = WaitAction(hero)
 
         return action
+
+    def ev_mousemotion(self, event: tcod.event.MouseMotion) -> Optional[Action]:
+        mouse_point = Point(event.tile.x, event.tile.y)
+        if not self.engine.map.tile_is_in_bounds(mouse_point):
+            mouse_point = None
+        self.engine.current_mouse_point = mouse_point
 
 class GameOverEventHandler(EventHandler):
     '''When the game is over (the hero dies, the player quits, etc), this event handler takes over.'''

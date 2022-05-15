@@ -408,8 +408,10 @@ function-naming-style=snake_case
 
 # Good variable names which should always be accepted, separated by a comma.
 good-names=ai,
+           bg,
            dx,
            dy,
+           fg,
            hp,
            i,
            j,

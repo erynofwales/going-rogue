@@ -41,12 +41,16 @@ class Entity:
         True if this Entity blocks other Entities from moving through its position
     '''
 
+    # A monotonically increasing identifier to help differentiate between entities that otherwise look identical
+    __NEXT_IDENTIFIER = 1
+
     def __init__(self, symbol: str, *,
                  position: Optional[Point] = None,
                  blocks_movement: Optional[bool] = True,
                  render_order: RenderOrder = RenderOrder.ITEM,
                  fg: Optional[Tuple[int, int, int]] = None,
                  bg: Optional[Tuple[int, int, int]] = None):
+        self.identifier = Entity.__NEXT_IDENTIFIER
         self.position = position if position else Point()
         self.foreground = fg if fg else (255, 255, 255)
         self.background = bg
@@ -54,12 +58,14 @@ class Entity:
         self.blocks_movement = blocks_movement
         self.render_order = render_order
 
+        Entity.__NEXT_IDENTIFIER += 1
+
     def print_to_console(self, console: tcod.Console) -> None:
         '''Render this Entity to the console'''
         console.print(x=self.position.x, y=self.position.y, string=self.symbol, fg=self.foreground, bg=self.background)
 
     def __str__(self) -> str:
-        return f'{self.symbol}[{self.position}]'
+        return f'{self.symbol}!{self.identifier} at {self.position}'
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.symbol!r}, position={self.position!r}, fg={self.foreground!r}, bg={self.background!r})'
@@ -116,7 +122,7 @@ class Hero(Actor):
         return 8
 
     def __str__(self) -> str:
-        return f'{self.symbol}[{self.position}][{self.fighter.hit_points}/{self.fighter.maximum_hit_points}]'
+        return f'Hero!{self.identifier} at {self.position} with {self.fighter.hit_points}/{self.fighter.maximum_hit_points} hp'
 
 class Monster(Actor):
     '''An instance of a Species'''
@@ -150,7 +156,7 @@ class Monster(Actor):
         return True
 
     def __str__(self) -> str:
-        return f'{self.name} with {self.fighter.hit_points}/{self.fighter.maximum_hit_points} hp at {self.position}'
+        return f'{self.name}!{self.identifier} with {self.fighter.hit_points}/{self.fighter.maximum_hit_points} hp at {self.position}'
 
 class Item(Entity):
     '''An instance of an Item'''

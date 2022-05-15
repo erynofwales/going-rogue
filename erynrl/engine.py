@@ -4,16 +4,20 @@
 
 import random
 from dataclasses import dataclass
-from typing import MutableSet
+from typing import TYPE_CHECKING, MutableSet, NoReturn
 
 import tcod
 
 from . import log
 from . import monsters
 from .ai import HostileEnemy
+from .events import MainGameEventHandler
 from .geometry import Size
 from .map import Map
 from .object import Entity, Hero, Monster
+
+if TYPE_CHECKING:
+    from .events import EventHandler
 
 @dataclass
 class Configuration:
@@ -44,6 +48,8 @@ class Engine:
         self.rng = tcod.random.Random()
         self.map = Map(configuration.map_size)
         self.hero = Hero(position=self.map.generator.rooms[0].center)
+
+        self.event_handler: 'EventHandler' = MainGameEventHandler(self)
 
         self.entities: MutableSet[Entity] = {self.hero}
         for room in self.map.rooms:
@@ -81,6 +87,15 @@ class Engine:
             if not self.map.visible[tuple(ent.position)]:
                 continue
             ent.print_to_console(console)
+
+    def run_event_loop(self, context: tcod.context.Context, console: tcod.Console) -> NoReturn:
+        '''Run the event loop forever. This method never returns.'''
+        while True:
+            console.clear()
+            self.print_to_console(console)
+            context.present(console)
+
+            self.event_handler.wait_for_events()
 
     def update_field_of_view(self) -> None:
         '''Compute visible area of the map based on the player's position and point of view.'''

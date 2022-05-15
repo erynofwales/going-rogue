@@ -6,7 +6,6 @@ import sys
 import tcod
 from . import log
 from .engine import Configuration, Engine
-from .events import EventHandler
 from .geometry import Size
 
 CONSOLE_WIDTH, CONSOLE_HEIGHT = 80, 50
@@ -64,15 +63,9 @@ def main(argv):
 
     configuration = Configuration(map_size=Size(MAP_WIDTH, MAP_HEIGHT))
     engine = Engine(configuration)
-    event_handler = EventHandler(engine)
 
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
-        while True:
-            console.clear()
-            engine.print_to_console(console)
-            context.present(console)
-
-            event_handler.wait_for_events()
+        engine.run_event_loop(context, console)
 
 def run_until_exit():
     '''

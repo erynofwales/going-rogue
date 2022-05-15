@@ -8,6 +8,18 @@ import tcod
 from .geometry import Rect
 
 class Message:
+    '''A message in the message log
+
+    Attributes
+    ----------
+    text : str
+        The text of the message
+    foreground : Tuple[int, int, int]
+        The foreground color to render the message with
+    count : int
+        The number of times this message has stacked
+    '''
+
     def __init__(self, text: str, fg: Optional[Tuple[int, int, int]] = None):
         self.text = text
         self.foreground = fg
@@ -53,10 +65,12 @@ class MessageLog:
             self.messages.append(Message(text, fg))
 
     def render_to_console(self, console: tcod.console.Console, rect: Rect):
+        '''Render this message log to the given console in the given rect'''
         self.render_messages(console, rect, self.messages)
 
     @staticmethod
     def render_messages(console: tcod.console.Console, rect: Rect, messages: Reversible[Message]):
+        '''Render a list of messages to the console in the given rect'''
         y_offset = min(rect.size.height, len(messages))
 
         for message in reversed(messages):

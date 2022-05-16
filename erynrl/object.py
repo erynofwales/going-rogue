@@ -1,5 +1,7 @@
 # Eryn Wells <eryn@erynwells.me>
 
+'''Defines a number of high-level game objects. The parent class of all game objects is the Entity class.'''
+
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Tuple, Type
 
@@ -27,6 +29,8 @@ class Entity:
 
     Attributes
     ----------
+    identifier : int
+        A numerical value that uniquely identifies this entity across the entire game
     position : Point
         The Entity's location on the map
     foreground : Tuple[int, int, int]
@@ -35,10 +39,11 @@ class Entity:
         The background color used to render this Entity
     symbol : str
         A single character string that represents this character on the map
-    ai : Type[AI], optional
-        If an entity can act on its own behalf, an instance of an AI class
     blocks_movement : bool
         True if this Entity blocks other Entities from moving through its position
+    render_order : RenderOrder
+        One of the RenderOrder values that specifies a layer at which this entity will be rendered. Higher values are
+        rendered on top of lower values.
     '''
 
     # A monotonically increasing identifier to help differentiate between entities that otherwise look identical
@@ -71,6 +76,19 @@ class Entity:
         return f'{self.__class__.__name__}({self.symbol!r}, position={self.position!r}, fg={self.foreground!r}, bg={self.background!r})'
 
 class Actor(Entity):
+    '''
+    An actor is an abstract class that defines an object that can act in the game world. Entities that are actors will
+    be allowed an opportunity to perform an action during each game turn.
+
+    Attributes
+    ----------
+    ai : AI, optional
+        If an entity can act on its own behalf, an instance of an AI class
+    fighter : Fighter, optional
+        If an entity can fight or take damage, an instance of the Fighter class. This is where hit points, attack power,
+        defense power, etc live.
+    '''
+
     def __init__(self, symbol: str, *,
                  position: Optional[Point] = None,
                  blocks_movement: Optional[bool] = True,
@@ -87,6 +105,7 @@ class Actor(Entity):
 
     @property
     def name(self) -> str:
+        '''The name of this actor. This is a player-visible string.'''
         return 'Actor'
 
     @property

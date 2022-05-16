@@ -149,14 +149,14 @@ class BumpAction(MoveAction):
         position_is_walkable = engine.map.tile_is_walkable(new_position)
 
         for ent in engine.entities:
-            if new_position != ent.position:
+            if new_position != ent.position or not ent.blocks_movement:
                 continue
             entity_occupying_position = ent
             break
         else:
             entity_occupying_position = None
 
-        log.ACTIONS.debug('Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
+        log.ACTIONS.info('Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
             self.actor,
             new_position,
             position_is_in_bounds,
@@ -166,7 +166,8 @@ class BumpAction(MoveAction):
         if not position_is_in_bounds or not position_is_walkable:
             return self.failure()
 
-        if entity_occupying_position and entity_occupying_position.blocks_movement:
+        if entity_occupying_position:
+            assert entity_occupying_position.blocks_movement
             return ActionResult(self, alternate=MeleeAction(self.actor, self.direction, entity_occupying_position))
 
         return ActionResult(self, alternate=WalkAction(self.actor, self.direction))

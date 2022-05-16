@@ -182,12 +182,12 @@ class Engine:
                 alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
             else:
                 alternate_string = str(result.alternate)
-                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
-                    '|' if not result.success or not result.done else '`',
-                    action,
-                    result.success,
-                    result.done,
-                    alternate_string)
+            log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                '|' if not result.success or not result.done else '`',
+                action,
+                result.success,
+                result.done,
+                alternate_string)
 
         while not result.done:
             action = result.alternate

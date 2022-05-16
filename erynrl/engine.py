@@ -14,8 +14,8 @@ from .actions import Action, ActionResult
 from .ai import HostileEnemy
 from .events import GameOverEventHandler, MainGameEventHandler
 from .geometry import Point, Rect, Size
-from .interface.bar import Bar
 from .interface import color
+from .interface.percentage_bar import PercentageBar
 from .map import Map
 from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
@@ -86,7 +86,7 @@ class Engine:
         self.update_field_of_view()
 
         # Interface elements
-        self.hit_points_bar = Bar(position=Point(4, 45), width=20, colors=list(color.HealthBar.bar_colors()))
+        self.hit_points_bar = PercentageBar(position=Point(4, 45), width=20, colors=list(color.HealthBar.bar_colors()))
 
         self.message_log.add_message('Greetings adventurer!', fg=(127, 127, 255), stack=False)
 

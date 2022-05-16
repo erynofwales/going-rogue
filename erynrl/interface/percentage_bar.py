@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 from . import color
 from ..geometry import Point
 
-class Bar:
+class PercentageBar:
     '''A bar that expresses a percentage.'''
 
     def __init__(self, *, position: Point, width: int, colors: Optional[List[Tuple[float, color.Color]]] = None):

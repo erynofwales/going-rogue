@@ -86,7 +86,7 @@ class Engine:
         self.update_field_of_view()
 
         # Interface elements
-        self.hit_points_bar = Bar(position=Point(4, 45), width=20)
+        self.hit_points_bar = Bar(position=Point(4, 45), width=20, colors=list(color.HealthBar.bar_colors()))
 
         self.message_log.add_message('Greetings adventurer!', fg=(127, 127, 255), stack=False)
 

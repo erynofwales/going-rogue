@@ -1,5 +1,11 @@
 # Eryn Wells <eryn@erynwells.me>
 
+'''
+Defines the classes the support the in-game message log. Messages are recorded to the log as game actions are handled. A
+short buffer of messages is displayed in the game's HUD, and a full list of messages can be viewed by the player at any
+time.
+'''
+
 import textwrap
 from typing import List, Optional, Reversible, Tuple
 
@@ -30,8 +36,7 @@ class Message:
         '''The full text of the message, including a count of repeats, if present'''
         if self.count == 1:
             return self.text
-        else:
-            return f'{self.text} (x{self.count})'
+        return f'{self.text} (x{self.count})'
 
     def __str__(self) -> str:
         return self.text

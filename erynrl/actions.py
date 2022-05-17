@@ -199,29 +199,26 @@ class MeleeAction(MoveAction):
         self.target = target
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        if not self.target:
+        try:
+            damage = self.actor.fighter.attack_power - self.target.fighter.defense
+            if damage > 0 and self.target:
+                log.ACTIONS.debug('%s attacks %s for %d damage!', self.actor, self.target, damage)
+                self.target.fighter.hit_points -= damage
+
+                if self.actor == engine.hero:
+                    engine.message_log.add_message(f'You attack the {self.target.name} for {damage} damage!', fg=(127, 255, 127))
+                elif self.target == engine.hero:
+                    engine.message_log.add_message(f'The {self.actor.name} attacks you for {damage} damage!', fg=(255, 127, 127))
+            else:
+                log.ACTIONS.debug('%s attacks %s but does no damage!', self.actor, self.target)
+
+            if self.target.fighter.is_dead:
+                log.ACTIONS.info('%s is dead!', self.target)
+                return ActionResult(self, alternate=DieAction(self.target))
+        except AttributeError:
             return self.failure()
-
-        if not self.actor.fighter or not self.target.fighter:
-            return self.failure()
-
-        damage = self.actor.fighter.attack_power - self.target.fighter.defense
-        if damage > 0 and self.target:
-            log.ACTIONS.debug('%s attacks %s for %d damage!', self.actor, self.target, damage)
-            self.target.fighter.hit_points -= damage
-
-            if self.actor == engine.hero:
-                engine.message_log.add_message(f'You attack the {self.target.name} for {damage} damage!', fg=(127, 255, 127))
-            elif self.target == engine.hero:
-                engine.message_log.add_message(f'The {self.actor.name} attacks you for {damage} damage!', fg=(255, 127, 127))
         else:
-            log.ACTIONS.debug('%s attacks %s but does no damage!', self.actor, self.target)
-
-        if self.target.fighter.is_dead:
-            log.ACTIONS.info('%s is dead!', self.target)
-            return ActionResult(self, alternate=DieAction(self.target))
-
-        return self.success()
+            return self.success()
 
 class WaitAction(Action):
     '''Wait a turn'''

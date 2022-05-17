@@ -182,6 +182,13 @@ class WalkAction(MoveAction):
         log.ACTIONS.debug('Moving %s to %s', self.actor, new_position)
         self.actor.position = new_position
 
+        try:
+            should_recover_hit_points = self.actor.fighter.passively_recover_hit_points(5)
+            if should_recover_hit_points:
+                return ActionResult(self, alternate=HealAction(self.actor, 1))
+        except AttributeError:
+            pass
+
         return self.success()
 
 class MeleeAction(MoveAction):
@@ -223,7 +230,7 @@ class WaitAction(Action):
         log.ACTIONS.debug('%s is waiting a turn', self.actor)
 
         if self.actor == engine.hero:
-            should_recover_hit_points = self.actor.fighter.passively_recover_hit_points()
+            should_recover_hit_points = self.actor.fighter.passively_recover_hit_points(10)
             if should_recover_hit_points:
                 return ActionResult(self, alternate=HealAction(self.actor, 1))
 

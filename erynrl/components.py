@@ -26,12 +26,15 @@ class Fighter(Component):
     def __init__(self, *, maximum_hit_points: int, attack_power: int, defense: int, hit_points: Optional[int] = None):
         self.maximum_hit_points = maximum_hit_points
         self.__hit_points = hit_points if hit_points else maximum_hit_points
+
         # TODO: Rename these two attributes something better
         self.attack_power = attack_power
         self.defense = defense
 
-        self.turns_since_last_heal = 0
-        self.turn_for_next_passive_heal = random.randint(3, 7)
+        # TODO: Factor this out into a dedicated Clock class
+        self.__ticks_since_last_passive_heal = 0
+        self.__ticks_for_next_passive_heal = 0
+        self._reset_passive_heal_clock()
 
     @property
     def hit_points(self) -> int:
@@ -47,16 +50,27 @@ class Fighter(Component):
         '''True if the Fighter has died, i.e. reached 0 hit points'''
         return self.__hit_points == 0
 
-    def passively_recover_hit_points(self) -> bool:
-        '''Check the passive healing clock to see if this fighter should recover hit points. If not, increment the
-        counter.'''
-        if self.hit_points == self.maximum_hit_points:
-            self.turns_since_last_heal = 0
+    def passively_recover_hit_points(self, number_of_ticks: int) -> bool:
+        '''
+        Check the passive healing clock to see if this fighter should recover hit points. If not, increment the
+        counter.
 
-        if self.turns_since_last_heal < self.turn_for_next_passive_heal:
-            self.turns_since_last_heal += 1
+        Arguments
+        ---------
+        number_of_ticks : int
+            The number of ticks to increment the clock
+        '''
+        if self.hit_points == self.maximum_hit_points:
+            self.__ticks_since_last_passive_heal = 0
+
+        if self.__ticks_since_last_passive_heal < self.__ticks_for_next_passive_heal:
+            self.__ticks_since_last_passive_heal += number_of_ticks
             return False
 
-        self.turns_since_last_heal = 0
-        self.turn_for_next_passive_heal = random.randint(3, 7)
+        self._reset_passive_heal_clock()
+
         return True
+
+    def _reset_passive_heal_clock(self) -> None:
+        self.__ticks_since_last_passive_heal = 0
+        self.__ticks_for_next_passive_heal = random.randint(30, 70)

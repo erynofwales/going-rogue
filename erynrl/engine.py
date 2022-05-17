@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class Configuration:
+    '''Configuration of the game engine'''
     map_size: Size
 
 class Engine:

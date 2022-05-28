@@ -16,7 +16,10 @@ from .object import Entity
 if TYPE_CHECKING:
     from .engine import Engine
 
+# pylint: disable=too-few-public-methods
 class AI(Component):
+    '''An abstract class providing AI for an entity.'''
+
     def __init__(self, entity: Entity) -> None:
         super().__init__()
         self.entity = entity
@@ -26,6 +29,12 @@ class AI(Component):
         raise NotImplementedError()
 
 class HostileEnemy(AI):
+    '''Entity AI for a hostile enemy.
+
+    The entity will wander around until it sees the hero, at which point it will
+    beeline for her.
+    '''
+
     def act(self, engine: 'Engine') -> Optional[Action]:
         visible_tiles = tcod.map.compute_fov(
             engine.map.tiles['transparent'],

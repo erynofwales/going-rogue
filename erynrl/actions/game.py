@@ -18,95 +18,23 @@ Action : Base class of all actions
     WaitAction
 '''
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-from . import items
-from . import log
-from .geometry import Direction
-from .object import Actor, Item
+from .. import items
+from .. import log
+from ..geometry import Direction
+from ..object import Actor, Item
+from .action import Action
+from .result import ActionResult
 
 if TYPE_CHECKING:
-    from .engine import Engine
-
-class ActionResult:
-    '''The result of an Action.
-
-    `Action.perform()` returns an instance of this class to inform the caller of the result
-
-    Attributes
-    ----------
-    action : Action
-        The Action that was performed
-    success : bool, optional
-        True if the action succeeded
-    done : bool, optional
-        True if the action is complete, and no follow-up action is needed
-    alternate : Action, optional
-        An alternate action to perform if this action failed
-    '''
-
-    def __init__(self, action: 'Action', *,
-                 success: Optional[bool] = None,
-                 done: Optional[bool] = None,
-                 alternate: Optional['Action'] = None):
-        self.action = action
-        self.alternate = alternate
-
-        if success is not None:
-            self.success = success
-        elif alternate:
-            self.success = False
-        else:
-            self.success = True
-
-        if done is not None:
-            self.done = done
-        elif self.success:
-            self.done = True
-        else:
-            self.done = not alternate
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}({self.action!r}, success={self.success}, done={self.done}, alternate={self.alternate!r})'
-
-class Action:
-    '''An action that an Entity should perform.'''
-
-    def __init__(self, actor: Optional[Actor]):
-        self.actor = actor
-
-    def perform(self, engine: 'Engine') -> ActionResult:
-        '''Perform this action.
-
-        Parameters
-        ----------
-        engine : Engine
-            The game engine
-
-        Returns
-        -------
-        ActionResult
-            A result object reflecting how the action was handled, and what follow-up actions, if any, are needed to
-            complete the action.
-        '''
-        raise NotImplementedError()
-
-    def failure(self) -> ActionResult:
-        '''Create an ActionResult indicating failure with no follow-up'''
-        return ActionResult(self, success=False)
-
-    def success(self) -> ActionResult:
-        '''Create an ActionResult indicating success with no follow-up'''
-        return ActionResult(self, success=True)
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__} for {self.actor!s}'
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}({self.actor!r})'
+    from ..engine import Engine
 
 class ExitAction(Action):
     '''Exit the game.'''
+
+    def __init__(self):
+        super().__init__(None)
 
     def perform(self, engine: 'Engine') -> ActionResult:
         raise SystemExit()

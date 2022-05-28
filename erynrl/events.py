@@ -7,7 +7,8 @@ from typing import Optional, TYPE_CHECKING
 import tcod
 
 from . import log
-from .actions import Action, ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
+from .actions.action import Action
+from .actions.game import ExitAction, RegenerateRoomsAction, BumpAction, WaitAction
 from .geometry import Direction, Point
 
 if TYPE_CHECKING:
@@ -46,7 +47,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         self.engine.process_input_action(action)
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
-        return ExitAction(self.engine.hero)
+        return ExitAction()
 
 class MainGameEventHandler(EventHandler):
     '''
@@ -80,7 +81,7 @@ class MainGameEventHandler(EventHandler):
             case tcod.event.KeySym.y:
                 action = BumpAction(hero, Direction.NorthWest)
             case tcod.event.KeySym.ESCAPE:
-                action = ExitAction(hero)
+                action = ExitAction()
             case tcod.event.KeySym.SPACE:
                 action = RegenerateRoomsAction(hero)
             case tcod.event.KeySym.PERIOD:
@@ -100,11 +101,9 @@ class GameOverEventHandler(EventHandler):
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
         action: Optional[Action] = None
 
-        hero = self.engine.hero
-
         sym = event.sym
         match sym:
             case tcod.event.KeySym.ESCAPE:
-                action = ExitAction(hero)
+                action = ExitAction()
 
         return action

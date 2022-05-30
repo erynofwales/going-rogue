@@ -10,7 +10,8 @@ import tcod
 
 from . import log
 from . import monsters
-from .actions import Action, ActionResult
+from .actions.action import Action
+from .actions.result import ActionResult
 from .ai import HostileEnemy
 from .events import GameOverEventHandler, MainGameEventHandler
 from .geometry import Point, Rect, Size

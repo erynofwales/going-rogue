@@ -10,7 +10,8 @@ from .geometry import Size
 
 CONSOLE_WIDTH, CONSOLE_HEIGHT = 80, 50
 MAP_WIDTH, MAP_HEIGHT = 80, 45
-FONT = 'terminal16x16_gs_ro.png'
+FONT_CP437 = 'terminal16x16_gs_ro.png'
+FONT_BDF = 'ter-u32n.bdf'
 
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
@@ -53,12 +54,12 @@ def main(argv):
         log.ROOT.error("Couldn't find a fonts/ directory")
         return -1
 
-    font = os.path.join(fonts_directory, FONT)
+    font = os.path.join(fonts_directory, FONT_BDF)
     if not os.path.isfile(font):
         log.ROOT.error("Font file %s doesn't exist", font)
         return -1
 
-    tileset = tcod.tileset.load_tilesheet(font, 16, 16, tcod.tileset.CHARMAP_CP437)
+    tileset = tcod.tileset.load_bdf(font)
     console = tcod.Console(CONSOLE_WIDTH, CONSOLE_HEIGHT, order='F')
 
     configuration = Configuration(map_size=Size(MAP_WIDTH, MAP_HEIGHT))

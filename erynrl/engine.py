@@ -80,19 +80,19 @@ class Engine:
             if should_spawn_monster_chance < 0.1:
                 continue
 
-                while True:
+            while True:
                 random_start_position = self.map.random_walkable_position()
-                    if not any(ent.position == random_start_position for ent in self.entities):
-                        break
+                if not any(ent.position == random_start_position for ent in self.entities):
+                    break
 
-                spawn_monster_chance = random.random()
-                if spawn_monster_chance > 0.8:
-                    monster = Monster(monsters.Troll, ai_class=HostileEnemy, position=random_start_position)
-                else:
-                    monster = Monster(monsters.Orc, ai_class=HostileEnemy, position=random_start_position)
+            spawn_monster_chance = random.random()
+            if spawn_monster_chance > 0.8:
+                monster = Monster(monsters.Troll, ai_class=HostileEnemy, position=random_start_position)
+            else:
+                monster = Monster(monsters.Orc, ai_class=HostileEnemy, position=random_start_position)
 
-                log.ENGINE.info('Spawning %s', monster)
-                self.entities.add(monster)
+            log.ENGINE.info('Spawning %s', monster)
+            self.entities.add(monster)
 
         self.update_field_of_view()
 
@@ -193,7 +193,8 @@ class Engine:
                 alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
             else:
                 alternate_string = str(result.alternate)
-            log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
+            log.ACTIONS_TREE.info(
+                '|   %s-> %s => success=%s done=%s alternate=%s',
                 '|' if not result.success or not result.done else '`',
                 action,
                 result.success,
@@ -211,7 +212,8 @@ class Engine:
                     alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
                 else:
                     alternate_string = str(result.alternate)
-                log.ACTIONS_TREE.info('|   %s-> %s => success=%s done=%s alternate=%s',
+                log.ACTIONS_TREE.info(
+                    '|   %s-> %s => success=%s done=%s alternate=%s',
                     '|' if not result.success or not result.done else '`',
                     action,
                     result.success,

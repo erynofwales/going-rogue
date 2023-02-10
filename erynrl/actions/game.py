@@ -30,6 +30,7 @@ from .result import ActionResult
 if TYPE_CHECKING:
     from ..engine import Engine
 
+
 class ExitAction(Action):
     '''Exit the game.'''
 
@@ -39,6 +40,7 @@ class ExitAction(Action):
     def perform(self, engine: 'Engine') -> ActionResult:
         raise SystemExit()
 
+
 class RegenerateRoomsAction(Action):
     '''Regenerate the dungeon map'''
 
@@ -46,6 +48,8 @@ class RegenerateRoomsAction(Action):
         return ActionResult(self, success=False)
 
 # pylint: disable=abstract-method
+
+
 class MoveAction(Action):
     '''An abstract Action that requires a direction to complete.'''
 
@@ -58,6 +62,7 @@ class MoveAction(Action):
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__} toward {self.direction} by {self.actor!s}'
+
 
 class BumpAction(MoveAction):
     '''Attempt to perform a movement action in a direction.
@@ -84,7 +89,8 @@ class BumpAction(MoveAction):
         else:
             entity_occupying_position = None
 
-        log.ACTIONS.info('Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
+        log.ACTIONS.info(
+            'Bumping %s into %s (in_bounds:%s walkable:%s overlaps:%s)',
             self.actor,
             new_position,
             position_is_in_bounds,
@@ -119,6 +125,7 @@ class WalkAction(MoveAction):
 
         return self.success()
 
+
 class MeleeAction(MoveAction):
     '''Perform a melee attack on another Actor'''
 
@@ -134,9 +141,13 @@ class MeleeAction(MoveAction):
                 self.target.fighter.hit_points -= damage
 
                 if self.actor == engine.hero:
-                    engine.message_log.add_message(f'You attack the {self.target.name} for {damage} damage!', fg=(127, 255, 127))
+                    engine.message_log.add_message(
+                        f'You attack the {self.target.name} for {damage} damage!',
+                        fg=(127, 255, 127))
                 elif self.target == engine.hero:
-                    engine.message_log.add_message(f'The {self.actor.name} attacks you for {damage} damage!', fg=(255, 127, 127))
+                    engine.message_log.add_message(
+                        f'The {self.actor.name} attacks you for {damage} damage!',
+                        fg=(255, 127, 127))
             else:
                 log.ACTIONS.debug('%s attacks %s but does no damage!', self.actor, self.target)
 
@@ -147,6 +158,7 @@ class MeleeAction(MoveAction):
             return self.failure()
         else:
             return self.success()
+
 
 class WaitAction(Action):
     '''Wait a turn'''
@@ -160,6 +172,7 @@ class WaitAction(Action):
                 return ActionResult(self, alternate=HealAction(self.actor, 1))
 
         return self.success()
+
 
 class DieAction(Action):
     '''Kill an Actor'''
@@ -179,6 +192,7 @@ class DieAction(Action):
 
         return self.success()
 
+
 class DropItemAction(Action):
     '''Drop an item'''
 
@@ -189,6 +203,7 @@ class DropItemAction(Action):
     def perform(self, engine: 'Engine') -> ActionResult:
         engine.entities.add(self.item)
         return self.success()
+
 
 class HealAction(Action):
     '''Heal a target actor some number of hit points'''

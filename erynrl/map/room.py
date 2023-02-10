@@ -1,6 +1,6 @@
 from typing import Iterator
 
-from ..geometry import Point, Rect
+from ..geometry import Point
 
 
 class Room:

@@ -1,14 +1,13 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import random
-from typing import List, Optional
 
 import numpy as np
+import numpy.typing as npt
 import tcod
 
 from ..geometry import Point, Size
 from .generator import MapGenerator
-from .room import Room, RectangularRoom
 from .tile import Empty, Shroud
 
 

@@ -42,6 +42,14 @@ Floor = tile(
     walkable=True, transparent=True,
     dark=(ord('·'), (80, 80, 100), (50, 50, 50)),
     light=(ord('·'), (100, 100, 120), (80, 80, 100)))
+StairsUp = tile(
+    walkable=True, transparent=True,
+    dark=(ord('<'), (80, 80, 100), (50, 50, 50)),
+    light=(ord('<'), (100, 100, 120), (80, 80, 100)))
+StairsDown = tile(
+    walkable=True, transparent=True,
+    dark=(ord('>'), (80, 80, 100), (50, 50, 50)),
+    light=(ord('>'), (100, 100, 120), (80, 80, 100)))
 Wall = tile(
     walkable=False, transparent=False,
     dark=(ord(' '), (255, 255, 255), (0, 0, 150)),

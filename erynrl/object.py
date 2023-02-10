@@ -51,6 +51,15 @@ class Entity:
     # A monotonically increasing identifier to help differentiate between entities that otherwise look identical
     __next_identifier = 1
 
+    def __init__(
+            self,
+            symbol: str,
+            *,
+            position: Optional[Point] = None,
+            blocks_movement: Optional[bool] = True,
+            render_order: RenderOrder = RenderOrder.ITEM,
+            fg: Optional[Tuple[int, int, int]] = None,
+            bg: Optional[Tuple[int, int, int]] = None):
         self.identifier = Entity.__next_identifier
         self.position = position if position else Point()
         self.foreground = fg if fg else (255, 255, 255)
@@ -86,14 +95,17 @@ class Actor(Entity):
         defense power, etc live.
     '''
 
-    def __init__(self, symbol: str, *,
-                 position: Optional[Point] = None,
-                 blocks_movement: Optional[bool] = True,
-                 render_order: RenderOrder = RenderOrder.ACTOR,
-                 ai: Optional[Type['AI']] = None,
-                 fighter: Optional[Fighter] = None,
-                 fg: Optional[Tuple[int, int, int]] = None,
-                 bg: Optional[Tuple[int, int, int]] = None):
+    def __init__(
+            self,
+            symbol: str,
+            *,
+            position: Optional[Point] = None,
+            blocks_movement: Optional[bool] = True,
+            render_order: RenderOrder = RenderOrder.ACTOR,
+            ai: Optional[Type['AI']] = None,
+            fighter: Optional[Fighter] = None,
+            fg: Optional[Tuple[int, int, int]] = None,
+            bg: Optional[Tuple[int, int, int]] = None):
         super().__init__(symbol, position=position, blocks_movement=blocks_movement, fg=fg, bg=bg, render_order=render_order)
 
         # Components
@@ -123,11 +135,12 @@ class Hero(Actor):
     '''The hero, the player character'''
 
     def __init__(self, position: Point):
-        super().__init__('@',
-             position=position,
-             fighter=Fighter(maximum_hit_points=30, attack_power=5, defense=2),
-             render_order=RenderOrder.HERO,
-             fg=tuple(tcod.white))
+        super().__init__(
+            '@',
+            position=position,
+            fighter=Fighter(maximum_hit_points=30, attack_power=5, defense=2),
+            render_order=RenderOrder.HERO,
+            fg=tuple(tcod.white))
 
     @property
     def name(self) -> str:

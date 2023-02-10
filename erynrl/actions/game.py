@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from .. import items
 from .. import log
-from ..geometry import Direction
+from ..geometry import Vector
 from ..object import Actor, Item
 from .action import Action
 from .result import ActionResult
@@ -53,7 +53,7 @@ class RegenerateRoomsAction(Action):
 class MoveAction(Action):
     '''An abstract Action that requires a direction to complete.'''
 
-    def __init__(self, actor: Actor, direction: Direction):
+    def __init__(self, actor: Actor, direction: Vector):
         super().__init__(actor)
         self.direction = direction
 
@@ -129,7 +129,7 @@ class WalkAction(MoveAction):
 class MeleeAction(MoveAction):
     '''Perform a melee attack on another Actor'''
 
-    def __init__(self, actor: Actor, direction: Direction, target: Actor):
+    def __init__(self, actor: Actor, direction: Vector, target: Actor):
         super().__init__(actor, direction)
         self.target = target
 

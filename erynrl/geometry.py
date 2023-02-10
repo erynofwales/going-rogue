@@ -13,6 +13,12 @@ class Point:
     x: int = 0
     y: int = 0
 
+    @property
+    def neighbors(self) -> Iterator['Point']:
+        '''Iterator over the neighboring points of `self` in all eight directions.'''
+        for direction in Direction.all():
+            yield self + direction
+
     def is_adjacent_to(self, other: 'Point') -> bool:
         '''Check if this point is adjacent to, but not overlapping the given point
 

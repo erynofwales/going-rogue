@@ -18,16 +18,21 @@ from .geometry import Point, Rect, Size
 from .interface import color
 from .interface.percentage_bar import PercentageBar
 from .map import Map
+from .map.generator import RoomsAndCorridorsGenerator
+from .map.generator.room import BSPRoomGenerator
+from .map.generator.corridor import ElbowCorridorGenerator
 from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
 
 if TYPE_CHECKING:
     from .events import EventHandler
 
+
 @dataclass
 class Configuration:
     '''Configuration of the game engine'''
     map_size: Size
+
 
 class Engine:
     '''The main game engine.
@@ -56,23 +61,27 @@ class Engine:
         self.did_successfully_process_actions_for_turn = False
 
         self.rng = tcod.random.Random()
-        self.map = Map(configuration.map_size)
         self.message_log = MessageLog()
+
+        map_size = configuration.map_size
+        map_generator = RoomsAndCorridorsGenerator(BSPRoomGenerator(size=map_size), ElbowCorridorGenerator())
+        self.map = Map(map_size, map_generator)
 
         self.event_handler: 'EventHandler' = MainGameEventHandler(self)
         self.current_mouse_point: Optional[Point] = None
 
-        self.hero = Hero(position=self.map.generator.rooms[0].center)
-        self.entities: MutableSet[Entity] = {self.hero}
-        for room in self.map.rooms:
+        self.entities: MutableSet[Entity] = set()
+
+        self.hero = Hero(position=self.map.random_walkable_position())
+        self.entities.add(self.hero)
+
+        while len(self.entities) < 25:
             should_spawn_monster_chance = random.random()
-            if should_spawn_monster_chance < 0.4:
+            if should_spawn_monster_chance < 0.1:
                 continue
 
-            floor = list(room.walkable_tiles)
-            for _ in range(2):
                 while True:
-                    random_start_position = random.choice(floor)
+                random_start_position = self.map.random_walkable_position()
                     if not any(ent.position == random_start_position for ent in self.entities):
                         break
 

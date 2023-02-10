@@ -6,6 +6,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, Iterator, Optional, overload
 
+
 @dataclass(frozen=True)
 class Point:
     '''A two-dimensional point, with coordinates in X and Y axes'''
@@ -32,9 +33,9 @@ class Point:
         bool
             True if this point is adjacent to the other point
         '''
-        return (self.x in (other.x - 1, other.x + 1)) and (self.y in (other.y -1, other.y + 1))
+        return (self.x in (other.x - 1, other.x + 1)) and (self.y in (other.y - 1, other.y + 1))
 
-    def direction_to_adjacent_point(self, other: 'Point') -> Optional['Direction']:
+    def direction_to_adjacent_point(self, other: 'Point') -> Optional['Vector']:
         for direction in Direction.all():
             if (self + direction) != other:
                 continue
@@ -62,6 +63,7 @@ class Point:
     def __str__(self):
         return f'(x:{self.x}, y:{self.y})'
 
+
 @dataclass(frozen=True)
 class Vector:
     '''A two-dimensional vector, representing change in position in X and Y axes'''
@@ -76,8 +78,12 @@ class Vector:
     def __str__(self):
         return f'(δx:{self.dx}, δy:{self.dy})'
 
+
 class Direction:
-    '''A collection of simple uint vectors in each of the eight major compass directions. This is a namespace, not a class.'''
+    '''
+    A collection of simple uint vectors in each of the eight major compass
+    directions. This is a namespace, not a class.
+    '''
 
     North = Vector(0, -1)
     NorthEast = Vector(1, -1)
@@ -89,7 +95,7 @@ class Direction:
     NorthWest = Vector(-1, -1)
 
     @classmethod
-    def all(cls) -> Iterator['Direction']:
+    def all(cls) -> Iterator[Vector]:
         '''Iterate through all directions, starting with North and proceeding clockwise'''
         yield Direction.North
         yield Direction.NorthEast
@@ -99,6 +105,7 @@ class Direction:
         yield Direction.SouthWest
         yield Direction.West
         yield Direction.NorthWest
+
 
 @dataclass(frozen=True)
 class Size:
@@ -113,6 +120,7 @@ class Size:
 
     def __str__(self):
         return f'(w:{self.width}, h:{self.height})'
+
 
 @dataclass(frozen=True)
 class Rect:

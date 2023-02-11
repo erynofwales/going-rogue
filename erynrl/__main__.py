@@ -13,16 +13,19 @@ MAP_WIDTH, MAP_HEIGHT = 80, 45
 FONT_CP437 = 'terminal16x16_gs_ro.png'
 FONT_BDF = 'ter-u32n.bdf'
 
+
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
     parser.add_argument('--debug', action='store_true', default=True)
     args = parser.parse_args(argv)
     return args
 
+
 def walk_up_directories_of_path(path):
     while path and path != '/':
         path = os.path.dirname(path)
         yield path
+
 
 def find_fonts_directory():
     '''Walk up the filesystem tree from this script to find a fonts/ directory.'''
@@ -35,6 +38,7 @@ def find_fonts_directory():
         return None
 
     return possible_fonts_dir
+
 
 def main(argv):
     '''
@@ -68,6 +72,7 @@ def main(argv):
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
         engine.run_event_loop(context, console)
 
+
 def run_until_exit():
     '''
     Run main() and call sys.exit when it finishes. In practice, this function will never return. The game engine has
@@ -75,5 +80,6 @@ def run_until_exit():
     '''
     result = main(sys.argv)
     sys.exit(0 if not result else result)
+
 
 run_until_exit()

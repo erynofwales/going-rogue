@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from .engine import Engine
 
 # pylint: disable=too-few-public-methods
+
+
 class AI(Component):
     '''An abstract class providing AI for an entity.'''
 
@@ -27,6 +29,7 @@ class AI(Component):
     def act(self, engine: 'Engine') -> Optional[Action]:
         '''Produce an action to perform'''
         raise NotImplementedError()
+
 
 class HostileEnemy(AI):
     '''Entity AI for a hostile enemy.
@@ -60,7 +63,8 @@ class HostileEnemy(AI):
             direction_to_next_position = entity_position.direction_to_adjacent_point(next_position)
 
             if engine.map.visible[tuple(self.entity.position)]:
-                log.AI.info('`-> Hero is visible to %s, bumping %s (%s)', self.entity, direction_to_next_position, next_position)
+                log.AI.info('`-> Hero is visible to %s, bumping %s (%s)',
+                            self.entity, direction_to_next_position, next_position)
 
             return BumpAction(self.entity, direction_to_next_position)
         else:

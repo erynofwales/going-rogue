@@ -14,6 +14,7 @@ from .geometry import Direction, Point
 if TYPE_CHECKING:
     from .engine import Engine
 
+
 class EventHandler(tcod.event.EventDispatch[Action]):
     '''Abstract event handler class'''
 
@@ -48,6 +49,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
         return ExitAction()
+
 
 class MainGameEventHandler(EventHandler):
     '''
@@ -94,6 +96,7 @@ class MainGameEventHandler(EventHandler):
         if not self.engine.map.tile_is_in_bounds(mouse_point):
             mouse_point = None
         self.engine.current_mouse_point = mouse_point
+
 
 class GameOverEventHandler(EventHandler):
     '''When the game is over (the hero dies, the player quits, etc), this event handler takes over.'''

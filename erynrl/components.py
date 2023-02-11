@@ -7,6 +7,7 @@ from typing import Optional
 class Component:
     '''A base, abstract Component that implement some aspect of an Entity's behavior.'''
 
+
 class Fighter(Component):
     '''A Fighter is an Entity that can fight. That is, it has hit points (health), attack, and defense.
 

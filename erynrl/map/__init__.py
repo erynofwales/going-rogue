@@ -1,5 +1,10 @@
 # Eryn Wells <eryn@erynwells.me>
 
+'''
+This module defines the level map, a number of basic building blocks (Rooms, etc), and objects that generate various
+parts of a map.
+'''
+
 import random
 
 import numpy as np

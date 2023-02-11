@@ -164,6 +164,22 @@ class Rect:
         '''A Point in the middle of the Rect'''
         return Point(self.mid_x, self.mid_y)
 
+    def intersects(self, other: 'Rect') -> bool:
+        '''Returns `True` if `other` intersects this Rect.'''
+        if other.min_x > self.max_x:
+            return False
+
+        if other.max_x < self.min_x:
+            return False
+
+        if other.min_y > self.max_y:
+            return False
+
+        if other.max_y < self.min_y:
+            return False
+
+        return True
+
     def inset_rect(self, top: int = 0, right: int = 0, bottom: int = 0, left: int = 0) -> 'Rect':
         '''
         Return a new Rect inset from this rect by the specified values. Arguments are listed in clockwise order around

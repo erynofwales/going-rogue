@@ -1,13 +1,13 @@
 from typing import Iterator
 
-from ..geometry import Point
+from ..geometry import Point, Rect
 
 
 class Room:
     '''An abstract room. It can be any size or shape.'''
 
-    def __init__(self, bounds):
-        self.bounds = bounds
+    def __init__(self, bounds: Rect):
+        self.bounds: Rect = bounds
 
     @property
     def center(self) -> Point:
@@ -15,13 +15,18 @@ class Room:
         return self.bounds.midpoint
 
     @property
-    def walls(self) -> Iterator[Point]:
-        '''An iterator over all the wall tiles of this room.'''
+    def wall_points(self) -> Iterator[Point]:
+        '''An iterator over all the points that make up the walls of this room.'''
+        raise NotImplementedError()
+
+    @property
+    def floor_points(self) -> Iterator[Point]:
+        '''An iterator over all the points that make of the floor of this room'''
         raise NotImplementedError()
 
     @property
     def walkable_tiles(self) -> Iterator[Point]:
-        '''An iterator over all the walkable tiles in this room.'''
+        '''An iterator over all the points that are walkable in this room.'''
         raise NotImplementedError()
 
 
@@ -43,16 +48,34 @@ class RectangularRoom(Room):
                 yield Point(x, y)
 
     @property
-    def walls(self) -> Iterator[Point]:
+    def wall_points(self) -> Iterator[Point]:
         bounds = self.bounds
+
         min_y = bounds.min_y
         max_y = bounds.max_y
         min_x = bounds.min_x
         max_x = bounds.max_x
-        for y in range(min_y, max_y + 1):
-            for x in range(min_x, max_x + 1):
-                if y == min_y or y == max_y or x == min_x or x == max_x:
-                    yield Point(x, y)
+
+        for x in range(min_x, max_x + 1):
+            yield Point(x, min_y)
+            yield Point(x, max_y)
+
+        for y in range(min_y + 1, max_y):
+            yield Point(min_x, y)
+            yield Point(max_x, y)
+
+    @property
+    def floor_points(self) -> Iterator[Point]:
+        inset_bounds = self.bounds.inset_rect(1, 1, 1, 1)
+
+        min_y = inset_bounds.min_y
+        max_y = inset_bounds.max_y
+        min_x = inset_bounds.min_x
+        max_x = inset_bounds.max_x
+
+        for x in range(min_x, max_x + 1):
+            for y in range(min_y, max_y + 1):
+                yield Point(x, y)
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.bounds})'

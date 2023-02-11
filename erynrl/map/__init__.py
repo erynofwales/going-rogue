@@ -17,7 +17,10 @@ class Map:
 
         self.generator = generator
         self.tiles = np.full(tuple(size), fill_value=Empty, order='F')
-        self.generator.generate(self.tiles)
+        generator.generate(self.tiles)
+
+        self.up_stairs = generator.up_stairs
+        self.down_stairs = generator.down_stairs
 
         # Map tiles that are currently visible to the player
         self.visible = np.full(tuple(self.size), fill_value=True, order='F')

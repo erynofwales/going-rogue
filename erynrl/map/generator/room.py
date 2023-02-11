@@ -8,7 +8,7 @@ import tcod
 from ... import log
 from ...geometry import Direction, Point, Rect, Size
 from ..room import Room, RectangularRoom
-from ..tile import Empty, Floor, Wall
+from ..tile import Empty, Floor, StairsUp, StairsDown, Wall
 
 
 class RoomGenerator:
@@ -17,8 +17,17 @@ class RoomGenerator:
     def __init__(self, *, size: Size):
         self.size = size
         self.rooms: List[Room] = []
+        self.up_stairs: List[Point] = []
+        self.down_stairs: List[Point] = []
 
-    def generate(self) -> bool:
+    def generate(self):
+        '''Generate rooms and stairs'''
+        did_generate_rooms = self._generate()
+
+        if did_generate_rooms:
+            self._generate_stairs()
+
+    def _generate(self) -> bool:
         '''
         Generate a list of rooms.
 
@@ -33,6 +42,11 @@ class RoomGenerator:
         raise NotImplementedError()
 
     def apply(self, tiles: np.ndarray):
+        '''Apply the generated rooms to a tile array'''
+        self._apply(tiles)
+        self._apply_stairs(tiles)
+
+    def _apply(self, tiles: np.ndarray):
         '''
         Apply the generated list of rooms to an array of tiles. Subclasses must implement this.
 
@@ -41,7 +55,33 @@ class RoomGenerator:
         tiles: np.ndarray
             The array of tiles to update.
         '''
-        raise NotImplementedError()
+        for room in self.rooms:
+            for pt in room.floor_points:
+                tiles[pt.x, pt.y] = Floor
+
+        for room in self.rooms:
+            for pt in room.wall_points:
+                if tiles[pt.x, pt.y] != Empty:
+                    continue
+                tiles[pt.x, pt.y] = Wall
+
+    def _generate_stairs(self):
+        up_stair_room = random.choice(self.rooms)
+        down_stair_room = None
+        if len(self.rooms) >= 2:
+            while down_stair_room is None or down_stair_room == up_stair_room:
+                down_stair_room = random.choice(self.rooms)
+        else:
+            down_stair_room = up_stair_room
+
+        self.up_stairs.append(random.choice(list(up_stair_room.walkable_tiles)))
+        self.down_stairs.append(random.choice(list(down_stair_room.walkable_tiles)))
+
+    def _apply_stairs(self, tiles):
+        for pt in self.up_stairs:
+            tiles[pt.x, pt.y] = StairsUp
+        for pt in self.down_stairs:
+            tiles[pt.x, pt.y] = StairsDown
 
 
 class BSPRoomGenerator(RoomGenerator):
@@ -59,16 +99,12 @@ class BSPRoomGenerator(RoomGenerator):
         maximum_room_size=Size(20, 20),
     )
 
-    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
-        super().__init__(size=size)
-        self.configuration = config if config else BSPRoomGenerator.DefaultConfiguration
+class BSPRoomGenerator(RoomGenerator):
+    '''Generate a rooms-and-corridors style map with BSP.'''
 
         self.rng: tcod.random.Random = tcod.random.Random()
 
-        self.rooms: List[RectangularRoom] = []
-        self.tiles: Optional[np.ndarray] = None
-
-    def generate(self) -> bool:
+    def _generate(self) -> bool:
         if self.rooms:
             return True
 
@@ -89,7 +125,7 @@ class BSPRoomGenerator(RoomGenerator):
         )
 
         # Generate the rooms
-        rooms: List['RectangularRoom'] = []
+        rooms: List[Room] = []
 
         room_attrname = f'{__class__.__name__}.room'
 
@@ -144,30 +180,6 @@ class BSPRoomGenerator(RoomGenerator):
         self.rooms = rooms
 
         return True
-
-    def apply(self, tiles: np.ndarray):
-        for room in self.rooms:
-            for wall_position in room.walls:
-                if tiles[wall_position.x, wall_position.y] != Floor:
-                    tiles[wall_position.x, wall_position.y] = Wall
-
-            bounds = room.bounds
-            # The range of a numpy array slice is [a, b).
-            floor_rect = bounds.inset_rect(top=1, right=1, bottom=1, left=1)
-            tiles[floor_rect.min_x:floor_rect.max_x + 1,
-                  floor_rect.min_y:floor_rect.max_y + 1] = Floor
-
-        for y in range(self.size.height):
-            for x in range(self.size.width):
-                pos = Point(x, y)
-                if tiles[x, y] != Floor:
-                    continue
-
-                neighbors = (pos + direction for direction in Direction.all())
-                for neighbor in neighbors:
-                    if tiles[neighbor.x, neighbor.y] != Empty:
-                        continue
-                    tiles[neighbor.x, neighbor.y] = Wall
 
     def __rect_from_bsp_node(self, node: tcod.bsp.BSP) -> Rect:
         '''Create a Rect from the given BSP node object'''

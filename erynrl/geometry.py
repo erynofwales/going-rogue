@@ -142,12 +142,12 @@ class Rect:
     @property
     def mid_x(self) -> int:
         '''The x-value of the center point of this rectangle.'''
-        return int(self.origin.x + self.size.width / 2)
+        return self.origin.x + self.size.width // 2
 
     @property
     def mid_y(self) -> int:
         '''The y-value of the center point of this rectangle.'''
-        return int(self.origin.y + self.size.height / 2)
+        return self.origin.y + self.size.height // 2
 
     @property
     def max_x(self) -> int:

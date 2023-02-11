@@ -74,7 +74,12 @@ class Engine:
 
         self.entities: MutableSet[Entity] = set()
 
-        self.hero = Hero(position=self.map.random_walkable_position())
+        try:
+            hero_start_position = self.map.up_stairs[0]
+        except IndexError:
+            hero_start_position = self.map.random_walkable_position()
+        self.hero = Hero(position=hero_start_position)
+
         self.entities.add(self.hero)
 
         while len(self.entities) < 25:

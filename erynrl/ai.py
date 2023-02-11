@@ -7,7 +7,7 @@ import numpy as np
 import tcod
 
 from . import log
-from .actions import Action
+from .actions.action import Action
 from .actions.game import BumpAction, WaitAction
 from .components import Component
 from .geometry import Direction, Point

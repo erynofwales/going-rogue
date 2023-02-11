@@ -68,7 +68,9 @@ class Engine:
         self.map = Map(map_size, map_generator)
 
         self.event_handler: 'EventHandler' = MainGameEventHandler(self)
-        self.current_mouse_point: Optional[Point] = None
+
+        self.__current_mouse_point: Optional[Point] = None
+        self.__mouse_path_points: Optional[List[Point]] = None
 
         self.entities: MutableSet[Entity] = set()
 
@@ -103,6 +105,8 @@ class Engine:
 
     def print_to_console(self, console):
         '''Print the whole game to the given console.'''
+        self.map.highlight_points(self.__mouse_path_points or [])
+
         self.map.print_to_console(console)
 
         console.print(x=1, y=45, string='HP:')
@@ -124,7 +128,7 @@ class Engine:
 
             ent.print_to_console(console)
 
-            if ent.position == self.current_mouse_point:
+            if ent.position == self.__current_mouse_point:
                 entities_at_mouse_position.append(ent)
 
         if len(entities_at_mouse_position) > 0:
@@ -141,11 +145,14 @@ class Engine:
             self.event_handler.handle_events(context)
             self.finish_turn()
 
-    def process_input_action(self, action: Action) -> ActionResult:
+    def process_input_action(self, action: Action):
         '''Process an Action from player input'''
 
         log.ACTIONS_TREE.info('Processing Hero Actions')
         log.ACTIONS_TREE.info('|-> %s', action.actor)
+
+        # Clear the mouse path highlight before handling actions.
+        self.__mouse_path_points = None
 
         result = self._perform_action_until_done(action)
 
@@ -225,7 +232,7 @@ class Engine:
 
         return result
 
-    def update_field_of_view(self) -> None:
+    def update_field_of_view(self):
         '''Compute visible area of the map based on the player's position and point of view.'''
         # FIXME: Move this to the Map class
         self.map.visible[:] = tcod.map.compute_fov(
@@ -233,8 +240,36 @@ class Engine:
             tuple(self.hero.position),
             radius=8)
 
-        # Visible tiles should be added to the explored list
+        # Add visible tiles to the explored grid
         self.map.explored |= self.map.visible
+
+    def update_mouse_point(self, mouse_point: Optional[Point]):
+        if mouse_point == self.__current_mouse_point:
+            return
+
+        should_render_mouse_path = (
+            mouse_point
+            and self.map.tile_is_in_bounds(mouse_point)
+            and self.map.tile_is_walkable(mouse_point))
+
+        if not should_render_mouse_path:
+            self.__current_mouse_point = None
+            self.__mouse_path_points = None
+            return
+
+        self.__current_mouse_point = mouse_point
+
+        path_from_hero_to_mouse_point = tcod.los.bresenham(tuple(self.hero.position), tuple(self.__current_mouse_point))
+        mouse_path_points = [Point(x, y) for x, y in path_from_hero_to_mouse_point.tolist()]
+
+        all_mouse_path_points_are_walkable = all(
+            self.map.tile_is_walkable(pt) and self.map.point_is_explored(pt) for pt in mouse_path_points)
+        if not all_mouse_path_points_are_walkable:
+            self.__current_mouse_point = None
+            self.__mouse_path_points = None
+            return
+
+        self.__mouse_path_points = mouse_path_points
 
     def begin_turn(self) -> None:
         '''Begin the current turn'''

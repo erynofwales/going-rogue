@@ -28,7 +28,7 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             context.convert_event(event)
             self.handle_event(event)
 
-    def handle_event(self, event: tcod.event.Event) -> None:
+    def handle_event(self, event: tcod.event.Event):
         '''
         Handle an event by transforming it into an Action and processing it until it is completed. If the Action
         succeeds, also process actions from other Entities.
@@ -95,7 +95,7 @@ class MainGameEventHandler(EventHandler):
         mouse_point = Point(event.tile.x, event.tile.y)
         if not self.engine.map.tile_is_in_bounds(mouse_point):
             mouse_point = None
-        self.engine.current_mouse_point = mouse_point
+        self.engine.update_mouse_point(mouse_point)
 
 
 class GameOverEventHandler(EventHandler):

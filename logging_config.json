@@ -17,39 +17,62 @@
     "loggers": {
         "erynrl": {
             "level": "INFO",
-            "handlers": ["console"],
+            "handlers": [
+                "console"
+            ],
             "propagate": false
         },
         "erynrl.ai": {
             "level": "ERROR",
-            "handlers": ["console"],
+            "handlers": [
+                "console"
+            ],
             "propagate": false
         },
         "erynrl.actions": {
             "level": "INFO",
-            "handlers": ["console"]
+            "handlers": [
+                "console"
+            ]
         },
         "erynrl.actions.movement": {
             "level": "ERROR",
-            "handlers": ["console"]
+            "handlers": [
+                "console"
+            ]
         },
         "erynrl.actions.tree": {
             "level": "INFO",
-            "handlers": ["console"],
+            "handlers": [
+                "console"
+            ],
             "propagate": false
         },
         "erynrl.events": {
             "level": "WARN",
-            "handlers": ["console"],
+            "handlers": [
+                "console"
+            ],
+            "propagate": false
+        },
+        "erynrl.map": {
+            "level": "DEBUG",
+            "handlers": [
+                "console"
+            ],
             "propagate": false
         },
         "erynrl.visible": {
             "level": "DEBUG",
-            "handlers": ["console"]
+            "handlers": [
+                "console"
+            ]
         }
     },
     "root": {
         "level": "DEBUG",
-        "handlers": ["console"]
+        "handlers": [
+            "console"
+        ]
     }
 }

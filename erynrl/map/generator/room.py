@@ -145,10 +145,6 @@ class RandomRectRoomGenerator(RoomGenerator):
 
         return True
 
-    DefaultConfiguration = Configuration(
-        minimum_room_size=Size(7, 7),
-        maximum_room_size=Size(20, 20),
-    )
 
 class BSPRoomGenerator(RoomGenerator):
     '''Generate a rooms-and-corridors style map with BSP.'''

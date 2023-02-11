@@ -1,4 +1,5 @@
 import random
+from copy import copy
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -6,7 +7,7 @@ import numpy as np
 import tcod
 
 from ... import log
-from ...geometry import Direction, Point, Rect, Size
+from ...geometry import Point, Rect, Size
 from ..room import Room, RectangularRoom
 from ..tile import Empty, Floor, StairsUp, StairsDown, Wall
 
@@ -14,8 +15,20 @@ from ..tile import Empty, Floor, StairsUp, StairsDown, Wall
 class RoomGenerator:
     '''Abstract room generator class.'''
 
-    def __init__(self, *, size: Size):
+    @dataclass
+    class Configuration:
+        number_of_rooms: int
+        minimum_room_size: Size
+        maximum_room_size: Size
+
+    DefaultConfiguration = Configuration(
+        number_of_rooms=30,
+        minimum_room_size=Size(7, 7),
+        maximum_room_size=Size(20, 20))
+
+    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
         self.size = size
+        self.configuration = config if config else copy(RoomGenerator.DefaultConfiguration)
         self.rooms: List[Room] = []
         self.up_stairs: List[Point] = []
         self.down_stairs: List[Point] = []
@@ -102,6 +115,8 @@ class BSPRoomGenerator(RoomGenerator):
 class BSPRoomGenerator(RoomGenerator):
     '''Generate a rooms-and-corridors style map with BSP.'''
 
+    def __init__(self, *, size: Size, config: Optional[RoomGenerator.Configuration] = None):
+        super().__init__(size=size, config=config)
         self.rng: tcod.random.Random = tcod.random.Random()
 
     def _generate(self) -> bool:

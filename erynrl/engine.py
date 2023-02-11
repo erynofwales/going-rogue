@@ -4,7 +4,7 @@
 
 import random
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, MutableSet, NoReturn, Optional
+from typing import TYPE_CHECKING, List, MutableSet, NoReturn, Optional
 
 import tcod
 
@@ -15,8 +15,7 @@ from .actions.result import ActionResult
 from .ai import HostileEnemy
 from .events import GameOverEventHandler, MainGameEventHandler
 from .geometry import Point, Rect, Size
-from .interface import color
-from .interface.percentage_bar import PercentageBar
+from .interface import Interface
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
 from .map.generator.room import BSPRoomGenerator
@@ -104,26 +103,15 @@ class Engine:
         self.update_field_of_view()
 
         # Interface elements
-        self.hit_points_bar = PercentageBar(position=Point(4, 45), width=20, colors=list(color.HealthBar.bar_colors()))
-
+        self.interface = Interface(Size(80, 50), self.map, self.message_log)
         self.message_log.add_message('Greetings adventurer!', fg=(127, 127, 255), stack=False)
 
     def print_to_console(self, console):
         '''Print the whole game to the given console.'''
         self.map.highlight_points(self.__mouse_path_points or [])
 
-        self.map.print_to_console(console)
-
-        console.print(x=1, y=45, string='HP:')
-        hp, max_hp = self.hero.fighter.hit_points, self.hero.fighter.maximum_hit_points
-        self.hit_points_bar.percent_filled = hp / max_hp
-        self.hit_points_bar.render_to_console(console)
-        console.print(x=6, y=45, string=f'{hp}/{max_hp}', fg=color.WHITE)
-
-        console.print(x=1, y=46, string=f'Turn: {self.current_turn}')
-
-        messages_rect = Rect(Point(x=27, y=45), Size(width=40, height=5))
-        self.message_log.render_to_console(console, messages_rect)
+        self.interface.update(self.hero, self.current_turn)
+        self.interface.draw(console)
 
         entities_at_mouse_position = []
         for ent in sorted(self.entities, key=lambda e: e.render_order.value):

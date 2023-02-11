@@ -12,7 +12,7 @@ import numpy as np
 import numpy.typing as npt
 import tcod
 
-from ..geometry import Point, Size
+from ..geometry import Point, Rect, Size
 from .generator import MapGenerator
 from .tile import Empty, Shroud
 
@@ -57,7 +57,7 @@ class Map:
         for pt in points if points:
             self.highlighted[pt.x, pt.y] = True
 
-    def print_to_console(self, console: tcod.Console) -> None:
+    def print_to_console(self, console: tcod.Console, bounds: Rect) -> None:
         '''Render the map to the console.'''
         size = self.size
 

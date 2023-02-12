@@ -116,7 +116,7 @@ class OneBigRoomGenerator(RoomGenerator):
 class RandomRectRoomGenerator(RoomGenerator):
     '''Generate rooms by repeatedly attempting to place rects of random size across the map.'''
 
-    NUMBER_OF_ATTEMPTS_PER_ROOM = 5
+    NUMBER_OF_ATTEMPTS_PER_ROOM = 30
 
     def _generate(self) -> bool:
         number_of_attempts = 0
@@ -164,14 +164,12 @@ class BSPRoomGenerator(RoomGenerator):
         bsp = tcod.bsp.BSP(x=0, y=0, width=self.size.width, height=self.size.height)
 
         # Add 2 to the minimum width and height to account for walls
-        gap_for_walls = 2
         bsp.split_recursive(
             depth=4,
-            min_width=minimum_room_size.width + gap_for_walls,
-            min_height=minimum_room_size.height + gap_for_walls,
+            min_width=minimum_room_size.width,
+            min_height=minimum_room_size.height,
             max_horizontal_ratio=1.1,
-            max_vertical_ratio=1.1
-        )
+            max_vertical_ratio=1.1)
 
         # Generate the rooms
         rooms: List[Room] = []
@@ -200,10 +198,16 @@ class BSPRoomGenerator(RoomGenerator):
                     minimum_room_size.height, node.height - 2))
             )
 
+            log.MAP.debug('|-> min room size %s', minimum_room_size)
+            log.MAP.debug('|-> max room size %s', maximum_room_size)
+            log.MAP.debug('|-> node size %s x %s', node.width, node.height)
+            log.MAP.debug('|-> width range %s', width_range)
+            log.MAP.debug('|-> height range %s', width_range)
+
             size = Size(self.rng.randint(*width_range),
                         self.rng.randint(*height_range))
-            origin = Point(node.x + self.rng.randint(1, max(1, node.width - size.width - 1)),
-                           node.y + self.rng.randint(1, max(1, node.height - size.height - 1)))
+            origin = Point(node.x + self.rng.randint(1, max(1, node.width - size.width - 2)),
+                           node.y + self.rng.randint(1, max(1, node.height - size.height - 2)))
             bounds = Rect(origin, size)
 
             log.MAP.debug('`-> %s', bounds)

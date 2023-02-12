@@ -64,6 +64,8 @@ class MainGameEventHandler(EventHandler):
 
         hero = self.engine.hero
 
+        is_shift_pressed = bool(event.mod & tcod.event.Modifier.SHIFT)
+
         sym = event.sym
         match sym:
             case tcod.event.KeySym.b:
@@ -87,7 +89,8 @@ class MainGameEventHandler(EventHandler):
             case tcod.event.KeySym.SPACE:
                 action = RegenerateRoomsAction(hero)
             case tcod.event.KeySym.PERIOD:
-                action = WaitAction(hero)
+                if not is_shift_pressed:
+                    action = WaitAction(hero)
 
         return action
 

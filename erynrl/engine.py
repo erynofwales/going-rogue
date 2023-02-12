@@ -18,7 +18,7 @@ from .geometry import Point, Size
 from .interface import Interface
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
-from .map.generator.room import BSPRoomGenerator
+from .map.generator.room import RandomRectRoomGenerator
 from .map.generator.corridor import ElbowCorridorGenerator
 from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
@@ -57,6 +57,9 @@ class Engine:
         self.message_log = MessageLog()
 
         map_size = config.map_size
+        map_generator = RoomsAndCorridorsGenerator(
+            RandomRectRoomGenerator(size=map_size),
+            ElbowCorridorGenerator())
         self.map = Map(config, map_generator)
 
         self.event_handler: 'EventHandler' = MainGameEventHandler(self)

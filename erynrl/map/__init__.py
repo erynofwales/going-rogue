@@ -12,28 +12,38 @@ import numpy as np
 import numpy.typing as npt
 import tcod
 
+from ..engine import Configuration
 from ..geometry import Point, Rect, Size
 from .generator import MapGenerator
 from .tile import Empty, Shroud
 
 
 class Map:
-    def __init__(self, size: Size, generator: MapGenerator):
-        self.size = size
+    def __init__(self, config: Configuration, generator: MapGenerator):
+        self.configuration = config
 
-        self.tiles = np.full(tuple(size), fill_value=Empty, order='F')
+        map_size = config.map_size
+        shape = tuple(map_size)
+
+        self.tiles = np.full(shape, fill_value=Empty, order='F')
         generator.generate(self.tiles)
 
         self.up_stairs = generator.up_stairs
         self.down_stairs = generator.down_stairs
 
-        self.highlighted = np.full(tuple(self.size), fill_value=False, order='F')
+        self.highlighted = np.full(shape, fill_value=False, order='F')
         # Map tiles that are currently visible to the player
-        self.visible = np.full(tuple(self.size), fill_value=False, order='F')
+        self.visible = np.full(shape, fill_value=False, order='F')
         # Map tiles that the player has explored
-        self.explored = np.full(tuple(self.size), fill_value=False, order='F')
+        should_mark_all_tiles_explored = config.sandbox
+        self.explored = np.full(shape, fill_value=should_mark_all_tiles_explored, order='F')
 
         self.__walkable_points = None
+
+    @property
+    def size(self) -> Size:
+        '''The size of the map'''
+        return self.configuration.map_size
 
     def random_walkable_position(self) -> Point:
         '''Return a random walkable point on the map.'''

@@ -1,43 +1,22 @@
 # Eryn Wells <eryn@erynwells.me>
 
+'''Main module'''
+
 import argparse
-import os.path
 import sys
 import tcod
 from . import log
-from .engine import Configuration, Engine
-from .geometry import Size
-
-CONSOLE_WIDTH, CONSOLE_HEIGHT = 80, 50
-MAP_WIDTH, MAP_HEIGHT = 80, 45
-FONT_CP437 = 'terminal16x16_gs_ro.png'
-FONT_BDF = 'ter-u32n.bdf'
+from .configuration import Configuration, FontConfiguration, FontConfigurationError, MAP_SIZE, CONSOLE_SIZE
+from .engine import Engine
 
 
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
     parser.add_argument('--debug', action='store_true', default=True)
+    parser.add_argument('--font')
+    parser.add_argument('--sandbox', action='store_true', default=False)
     args = parser.parse_args(argv)
     return args
-
-
-def walk_up_directories_of_path(path):
-    while path and path != '/':
-        path = os.path.dirname(path)
-        yield path
-
-
-def find_fonts_directory():
-    '''Walk up the filesystem tree from this script to find a fonts/ directory.'''
-    for parent_dir in walk_up_directories_of_path(__file__):
-        possible_fonts_dir = os.path.join(parent_dir, 'fonts')
-        if os.path.isdir(possible_fonts_dir):
-            log.ROOT.info('Found fonts dir %s', possible_fonts_dir)
-            break
-    else:
-        return None
-
-    return possible_fonts_dir
 
 
 def main(argv):
@@ -53,24 +32,30 @@ def main(argv):
 
     log.init()
 
-    fonts_directory = find_fonts_directory()
-    if not fonts_directory:
-        log.ROOT.error("Couldn't find a fonts/ directory")
+    try:
+        font = args.font
+        if font:
+            font_config = FontConfiguration.with_filename(font)
+        else:
+            font_config = FontConfiguration.default_configuration()
+    except FontConfigurationError as error:
+        log.ROOT.error('Unable to create a default font configuration: %s', error)
         return -1
 
-    font = os.path.join(fonts_directory, FONT_BDF)
-    if not os.path.isfile(font):
-        log.ROOT.error("Font file %s doesn't exist", font)
-        return -1
+    configuration = Configuration(
+        console_size=CONSOLE_SIZE,
+        console_font_config=font_config,
+        map_size=MAP_SIZE,
+        sandbox=args.sandbox)
 
-    tileset = tcod.tileset.load_bdf(font)
-    console = tcod.Console(CONSOLE_WIDTH, CONSOLE_HEIGHT, order='F')
-
-    configuration = Configuration(map_size=Size(MAP_WIDTH, MAP_HEIGHT))
     engine = Engine(configuration)
 
+    tileset = configuration.console_font_config.tileset
+    console = tcod.Console(*configuration.console_size.numpy_shape, order='F')
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
         engine.run_event_loop(context, console)
+
+    return 0
 
 
 def run_until_exit():

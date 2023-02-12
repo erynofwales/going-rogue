@@ -3,7 +3,6 @@
 '''Defines the core game engine.'''
 
 import random
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, MutableSet, NoReturn, Optional
 
 import tcod
@@ -13,8 +12,9 @@ from . import monsters
 from .actions.action import Action
 from .actions.result import ActionResult
 from .ai import HostileEnemy
+from .configuration import Configuration
 from .events import GameOverEventHandler, MainGameEventHandler
-from .geometry import Point, Rect, Size
+from .geometry import Point, Size
 from .interface import Interface
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
@@ -25,12 +25,6 @@ from .object import Actor, Entity, Hero, Monster
 
 if TYPE_CHECKING:
     from .events import EventHandler
-
-
-@dataclass
-class Configuration:
-    '''Configuration of the game engine'''
-    map_size: Size
 
 
 class Engine:
@@ -52,8 +46,8 @@ class Engine:
         A random number generator
     '''
 
-    def __init__(self, configuration: Configuration):
-        self.configuration = configuration
+    def __init__(self, config: Configuration):
+        self.configuration = config
 
         self.current_turn = 1
         self.did_begin_turn = False
@@ -62,9 +56,8 @@ class Engine:
         self.rng = tcod.random.Random()
         self.message_log = MessageLog()
 
-        map_size = configuration.map_size
-        map_generator = RoomsAndCorridorsGenerator(BSPRoomGenerator(size=map_size), ElbowCorridorGenerator())
-        self.map = Map(map_size, map_generator)
+        map_size = config.map_size
+        self.map = Map(config, map_generator)
 
         self.event_handler: 'EventHandler' = MainGameEventHandler(self)
 

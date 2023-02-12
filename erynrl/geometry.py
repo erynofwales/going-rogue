@@ -71,6 +71,11 @@ class Vector:
     dx: int = 0
     dy: int = 0
 
+    @classmethod
+    def from_point(cls, point: Point) -> 'Vector':
+        '''Create a Vector from a Point'''
+        return Vector(point.x, point.y)
+
     def __iter__(self):
         yield self.dx
         yield self.dy
@@ -163,6 +168,16 @@ class Rect:
     def max_y(self) -> int:
         '''Maximum y-value that is still within the bounds of this rectangle.'''
         return self.origin.y + self.size.height - 1
+
+    @property
+    def width(self) -> int:
+        '''The width of the rectangle. A convenience property for accessing `self.size.width`.'''
+        return self.size.width
+
+    @property
+    def height(self) -> int:
+        '''The height of the rectangle. A convenience property for accessing `self.size.height`.'''
+        return self.size.height
 
     @property
     def midpoint(self) -> Point:

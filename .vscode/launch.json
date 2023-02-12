@@ -9,6 +9,9 @@
             "type": "python",
             "request": "launch",
             "module": "erynrl",
+            "args": [
+                "--sandbox"
+            ],
             "justMyCode": true
         }
     ]

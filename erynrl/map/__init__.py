@@ -19,11 +19,13 @@ from .tile import Empty, Shroud
 
 
 class Map:
+    '''A level map'''
+
     def __init__(self, config: Configuration, generator: MapGenerator):
         self.configuration = config
 
         map_size = config.map_size
-        shape = tuple(map_size)
+        shape = map_size.numpy_shape
 
         self.tiles = np.full(shape, fill_value=Empty, order='F')
         generator.generate(self.tiles)
@@ -60,11 +62,14 @@ class Map:
         '''Return True if the tile at the given point is walkable'''
         return self.tile_is_in_bounds(point) and self.tiles[point.x, point.y]['walkable']
 
+    def point_is_explored(self, point: Point) -> bool:
+        return self.tile_is_in_bounds(point) and self.explored[point.x, point.y]
+
     def highlight_points(self, points: Iterable[Point]):
         '''Update the highlight graph with the list of points to highlight.'''
         self.highlighted.fill(False)
 
-        for pt in points if points:
+        for pt in points:
             self.highlighted[pt.x, pt.y] = True
 
     def print_to_console(self, console: tcod.Console, bounds: Rect) -> None:

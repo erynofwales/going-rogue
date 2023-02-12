@@ -4,7 +4,7 @@
 
 import math
 from dataclasses import dataclass
-from typing import Any, Iterator, Optional, overload
+from typing import Any, Iterator, Optional, overload, Tuple
 
 
 @dataclass(frozen=True)
@@ -113,6 +113,11 @@ class Size:
 
     width: int = 0
     height: int = 0
+
+    @property
+    def numpy_shape(self) -> Tuple[int, int]:
+        '''Return a tuple suitable for passing into numpy array initializers for specifying the shape of the array.'''
+        return (self.width, self.height)
 
     def __iter__(self):
         yield self.width

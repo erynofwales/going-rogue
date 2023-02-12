@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class RenderOrder(Enum):
     '''
     These values indicate the order that an Entity should be rendered. Higher values are rendered later and therefore on
-    top of items at with lower orderings.
+    top of items with lower orderings.
     '''
     ITEM = 1000
     ACTOR = 2000

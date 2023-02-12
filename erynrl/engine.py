@@ -106,22 +106,10 @@ class Engine:
         '''Print the whole game to the given console.'''
         self.map.highlight_points(self.__mouse_path_points or [])
 
-        self.interface.update(self.hero, self.current_turn)
+        sorted_entities = sorted(self.entities, key=lambda e: e.render_order.value)
+        self.interface.update(self.current_turn, self.hero, sorted_entities)
+
         self.interface.draw(console)
-
-        entities_at_mouse_position = []
-        for ent in sorted(self.entities, key=lambda e: e.render_order.value):
-            # Only process entities that are in the field of view
-            if not self.map.visible[tuple(ent.position)]:
-                continue
-
-            ent.print_to_console(console)
-
-            if ent.position == self.__current_mouse_point:
-                entities_at_mouse_position.append(ent)
-
-        if len(entities_at_mouse_position) > 0:
-            console.print(x=1, y=43, string=', '.join(e.name for e in entities_at_mouse_position))
 
     def run_event_loop(self, context: tcod.context.Context, console: tcod.Console) -> NoReturn:
         '''Run the event loop forever. This method never returns.'''

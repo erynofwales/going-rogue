@@ -47,6 +47,20 @@ class Map:
         '''The size of the map'''
         return self.configuration.map_size
 
+    @property
+    def composited_tiles(self) -> np.ndarray:
+        # TODO: Hold onto the result here so that this doen't have to be done every time this property is called.
+        return np.select(
+            condlist=[
+                self.highlighted,
+                self.visible,
+                self.explored],
+            choicelist=[
+                self.tiles['highlighted'],
+                self.tiles['light'],
+                self.tiles['dark']],
+            default=Shroud)
+
     def random_walkable_position(self) -> Point:
         '''Return a random walkable point on the map.'''
         if not self.__walkable_points:

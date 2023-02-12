@@ -195,9 +195,9 @@ class Engine:
                 alternate_string)
 
         while not result.done:
-            action = result.alternate
-            assert action is not None, f'Action {result.action} incomplete but no alternate action given'
+            assert result.alternate is not None, f'Action {result.action} incomplete but no alternate action given'
 
+            action = result.alternate
             result = action.perform(self)
 
             if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.map.visible[tuple(action.actor.position)]:

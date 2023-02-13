@@ -4,7 +4,7 @@
 
 import math
 from dataclasses import dataclass
-from typing import Any, Iterator, Optional, overload, Tuple
+from typing import Iterator, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -36,6 +36,7 @@ class Point:
         return (self.x in (other.x - 1, other.x + 1)) and (self.y in (other.y - 1, other.y + 1))
 
     def direction_to_adjacent_point(self, other: 'Point') -> Optional['Vector']:
+        '''Given a point directly adjacent to `self`'''
         for direction in Direction.all():
             if (self + direction) != other:
                 continue
@@ -47,14 +48,15 @@ class Point:
         '''Compute the Euclidean distance to another Point'''
         return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
-    @overload
     def __add__(self, other: 'Vector') -> 'Point':
-        ...
-
-    def __add__(self, other: Any) -> 'Point':
         if not isinstance(other, Vector):
             raise TypeError('Only Vector can be added to a Point')
         return Point(self.x + other.dx, self.y + other.dy)
+
+    def __sub__(self, other: 'Vector') -> 'Point':
+        if not isinstance(other, Vector):
+            raise TypeError('Only Vector can be added to a Point')
+        return Point(self.x - other.dx, self.y - other.dy)
 
     def __iter__(self):
         yield self.x

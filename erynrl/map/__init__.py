@@ -43,6 +43,11 @@ class Map:
         self.__walkable_points = None
 
     @property
+    def bounds(self) -> Rect:
+        '''The bounds of the map'''
+        return Rect(Point(), self.size)
+
+    @property
     def size(self) -> Size:
         '''The size of the map'''
         return self.configuration.map_size

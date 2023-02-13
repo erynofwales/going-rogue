@@ -18,7 +18,7 @@ from .geometry import Size
 
 
 CONSOLE_SIZE = Size(80, 50)
-MAP_SIZE = Size(80, 45)
+MAP_SIZE = Size(100, 100)
 FONT_CP437 = 'terminal16x16_gs_ro.png'
 FONT_BDF = 'ter-u32n.bdf'
 

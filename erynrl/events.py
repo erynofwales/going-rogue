@@ -87,7 +87,7 @@ class MainGameEventHandler(EventHandler):
             case tcod.event.KeySym.ESCAPE:
                 action = ExitAction()
             case tcod.event.KeySym.SPACE:
-                action = RegenerateRoomsAction(hero)
+                action = RegenerateRoomsAction()
             case tcod.event.KeySym.PERIOD:
                 if not is_shift_pressed:
                     action = WaitAction(hero)

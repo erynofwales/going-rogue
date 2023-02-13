@@ -23,11 +23,15 @@ class Interface:
         self.message_window = MessageLogWindow(Rect(Point(28, size.height - 5), Size(size.width - 28, 5)), message_log)
 
     def update(self, turn_count: int, hero: Hero, entities: List[Entity]):
+        '''Update game state that the interface needs to render'''
         self.info_window.turn_count = turn_count
         self.info_window.update_hero(hero)
+
+        self.map_window.update_drawable_map_bounds(hero)
         self.map_window.entities = entities
 
     def draw(self, console: Console):
+        '''Draw the UI to the console'''
         self.map_window.draw(console)
         self.info_window.draw(console)
         self.message_window.draw(console)
@@ -48,6 +52,7 @@ class InfoWindow(Window):
             colors=list(HealthBar.bar_colors()))
 
     def update_hero(self, hero: Hero):
+        '''Update internal state for the hero'''
         assert hero.fighter
 
         fighter = hero.fighter

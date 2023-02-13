@@ -126,7 +126,7 @@ class Engine:
         '''Process an Action from player input'''
 
         if not isinstance(action, ActionWithActor):
-            log.ACTIONS_TREE.error('Attempted to process input action with no actor')
+            action.perform(self)
             return
 
         log.ACTIONS_TREE.info('Processing Hero Actions')

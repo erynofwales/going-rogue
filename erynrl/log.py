@@ -13,8 +13,10 @@ import os.path
 # pylint: disable=unused-import
 from logging import CRITICAL, DEBUG, ERROR, FATAL, INFO, NOTSET, WARN, WARNING
 
+
 def _log_name(*components):
     return '.'.join(['erynrl'] + list(components))
+
 
 ROOT = logging.getLogger(_log_name())
 AI = logging.getLogger(_log_name('ai'))
@@ -23,6 +25,8 @@ ACTIONS_TREE = logging.getLogger(_log_name('actions', 'tree'))
 ENGINE = logging.getLogger(_log_name('engine'))
 EVENTS = logging.getLogger(_log_name('events'))
 MAP = logging.getLogger(_log_name('map'))
+UI = logging.getLogger(_log_name('ui'))
+
 
 def walk_up_directories_of_path(path):
     '''Walk up a path, yielding each directory, until the root of the filesystem is found'''
@@ -30,6 +34,7 @@ def walk_up_directories_of_path(path):
         if os.path.isdir(path):
             yield path
         path = os.path.dirname(path)
+
 
 def find_logging_config():
     '''Walk up the filesystem from this script to find a logging_config.json'''
@@ -42,6 +47,7 @@ def find_logging_config():
         return None
 
     return possible_logging_config_file
+
 
 def init(config_file=None):
     '''

@@ -9,7 +9,7 @@ import tcod
 
 from . import log
 from . import monsters
-from .actions.action import Action
+from .actions.action import Action, ActionWithActor
 from .actions.result import ActionResult
 from .ai import HostileEnemy
 from .configuration import Configuration
@@ -125,6 +125,10 @@ class Engine:
     def process_input_action(self, action: Action):
         '''Process an Action from player input'''
 
+        if not isinstance(action, ActionWithActor):
+            log.ACTIONS_TREE.error('Attempted to process input action with no actor')
+            return
+
         log.ACTIONS_TREE.info('Processing Hero Actions')
         log.ACTIONS_TREE.info('|-> %s', action.actor)
 
@@ -165,10 +169,11 @@ class Engine:
             if self.map.visible[tuple(ent.position)]:
                 log.ACTIONS_TREE.info('%s-> %s', '|' if i < len(entities) - 1 else '`', ent)
 
-            action = ent_ai.act(self)
-            self._perform_action_until_done(action)
+            action = ent_ai.act(engine=self)
+            if action:
+                self._perform_action_until_done(action)
 
-    def _perform_action_until_done(self, action: Action) -> ActionResult:
+    def _perform_action_until_done(self, action: ActionWithActor) -> ActionResult:
         '''Perform the given action and any alternate follow-up actions until the action chain is done.'''
         result = action.perform(self)
 

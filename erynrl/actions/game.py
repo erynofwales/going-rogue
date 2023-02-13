@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# Eryn Wells <eryn@erynwells.me>
-
 '''
 This module defines all of the actions that can be performed by the game. These actions can come from the player (e.g.
 via keyboard input), or from non-player entities (e.g. AI deciboard input), or from non-player entities (e.g. AI
@@ -18,13 +15,14 @@ Action : Base class of all actions
     WaitAction
 '''
 
+import random
 from typing import TYPE_CHECKING
 
 from .. import items
 from .. import log
 from ..geometry import Vector
 from ..object import Actor, Item
-from .action import Action
+from .action import Action, ActionWithActor
 from .result import ActionResult
 
 if TYPE_CHECKING:
@@ -34,9 +32,6 @@ if TYPE_CHECKING:
 class ExitAction(Action):
     '''Exit the game.'''
 
-    def __init__(self):
-        super().__init__(None)
-
     def perform(self, engine: 'Engine') -> ActionResult:
         raise SystemExit()
 
@@ -45,12 +40,10 @@ class RegenerateRoomsAction(Action):
     '''Regenerate the dungeon map'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        return ActionResult(self, success=False)
-
-# pylint: disable=abstract-method
+        return self.failure()
 
 
-class MoveAction(Action):
+class MoveAction(ActionWithActor):
     '''An abstract Action that requires a direction to complete.'''
 
     def __init__(self, actor: Actor, direction: Vector):
@@ -100,6 +93,8 @@ class BumpAction(MoveAction):
         if not position_is_in_bounds or not position_is_walkable:
             return self.failure()
 
+        # TODO: I'm passing entity_occupying_position into the ActionResult below, but the type checker doesn't
+        # understand that the entity is an Actor. I think I need some additional checks here.
         if entity_occupying_position:
             assert entity_occupying_position.blocks_movement
             return ActionResult(self, alternate=MeleeAction(self.actor, self.direction, entity_occupying_position))
@@ -111,15 +106,19 @@ class WalkAction(MoveAction):
     '''Walk one step in the given direction.'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
-        new_position = self.actor.position + self.direction
+        actor = self.actor
+
+        assert actor.fighter
+
+        new_position = actor.position + self.direction
 
         log.ACTIONS.debug('Moving %s to %s', self.actor, new_position)
-        self.actor.position = new_position
+        actor.position = new_position
 
         try:
-            should_recover_hit_points = self.actor.fighter.passively_recover_hit_points(5)
+            should_recover_hit_points = actor.fighter.passively_recover_hit_points(5)
             if should_recover_hit_points:
-                return ActionResult(self, alternate=HealAction(self.actor, 1))
+                return ActionResult(self, alternate=HealAction(actor, random.randint(1, 3)))
         except AttributeError:
             pass
 
@@ -134,8 +133,13 @@ class MeleeAction(MoveAction):
         self.target = target
 
     def perform(self, engine: 'Engine') -> ActionResult:
+        assert self.actor.fighter and self.target.fighter
+
+        fighter = self.actor.fighter
+        target_fighter = self.target.fighter
+
         try:
-            damage = self.actor.fighter.attack_power - self.target.fighter.defense
+            damage = fighter.attack_power - target_fighter.defense
             if damage > 0 and self.target:
                 log.ACTIONS.debug('%s attacks %s for %d damage!', self.actor, self.target, damage)
                 self.target.fighter.hit_points -= damage
@@ -160,21 +164,24 @@ class MeleeAction(MoveAction):
             return self.success()
 
 
-class WaitAction(Action):
+class WaitAction(ActionWithActor):
     '''Wait a turn'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
         log.ACTIONS.debug('%s is waiting a turn', self.actor)
 
         if self.actor == engine.hero:
-            should_recover_hit_points = self.actor.fighter.passively_recover_hit_points(10)
+            assert self.actor.fighter
+
+            fighter = self.actor.fighter
+            should_recover_hit_points = fighter.passively_recover_hit_points(20)
             if should_recover_hit_points:
-                return ActionResult(self, alternate=HealAction(self.actor, 1))
+                return ActionResult(self, alternate=HealAction(self.actor, random.randint(1, 3)))
 
         return self.success()
 
 
-class DieAction(Action):
+class DieAction(ActionWithActor):
     '''Kill an Actor'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
@@ -193,7 +200,7 @@ class DieAction(Action):
         return self.success()
 
 
-class DropItemAction(Action):
+class DropItemAction(ActionWithActor):
     '''Drop an item'''
 
     def __init__(self, actor: 'Actor', item: 'Item'):
@@ -205,7 +212,7 @@ class DropItemAction(Action):
         return self.success()
 
 
-class HealAction(Action):
+class HealAction(ActionWithActor):
     '''Heal a target actor some number of hit points'''
 
     def __init__(self, actor: 'Actor', hit_points_to_recover: int):

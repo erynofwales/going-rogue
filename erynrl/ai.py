@@ -7,7 +7,7 @@ import numpy as np
 import tcod
 
 from . import log
-from .actions.action import Action
+from .actions.action import ActionWithActor
 from .actions.game import BumpAction, WaitAction
 from .components import Component
 from .geometry import Direction, Point
@@ -26,7 +26,7 @@ class AI(Component):
         super().__init__()
         self.entity = entity
 
-    def act(self, engine: 'Engine') -> Optional[Action]:
+    def act(self, engine: 'Engine') -> Optional[ActionWithActor]:
         '''Produce an action to perform'''
         raise NotImplementedError()
 
@@ -38,7 +38,7 @@ class HostileEnemy(AI):
     beeline for her.
     '''
 
-    def act(self, engine: 'Engine') -> Optional[Action]:
+    def act(self, engine: 'Engine') -> Optional[ActionWithActor]:
         visible_tiles = tcod.map.compute_fov(
             engine.map.tiles['transparent'],
             pov=tuple(self.entity.position),

@@ -102,11 +102,17 @@ class Actor(Entity):
             position: Optional[Point] = None,
             blocks_movement: Optional[bool] = True,
             render_order: RenderOrder = RenderOrder.ACTOR,
-            ai: Optional[Type['AI']] = None,
+            ai: Optional['AI'] = None,
             fighter: Optional[Fighter] = None,
             fg: Optional[Tuple[int, int, int]] = None,
             bg: Optional[Tuple[int, int, int]] = None):
-        super().__init__(symbol, position=position, blocks_movement=blocks_movement, fg=fg, bg=bg, render_order=render_order)
+        super().__init__(
+            symbol,
+            position=position,
+            blocks_movement=blocks_movement,
+            fg=fg,
+            bg=bg,
+            render_order=render_order)
 
         # Components
         self.ai = ai
@@ -152,13 +158,14 @@ class Hero(Actor):
         return 8
 
     def __str__(self) -> str:
+        assert self.fighter
         return f'Hero!{self.identifier} at {self.position} with {self.fighter.hit_points}/{self.fighter.maximum_hit_points} hp'
 
 
 class Monster(Actor):
     '''An instance of a Species'''
 
-    def __init__(self, species: Species, ai_class: Type['AI'], position: Point = None):
+    def __init__(self, species: Species, ai_class: Type['AI'], position: Optional[Point] = None):
         fighter = Fighter(
             maximum_hit_points=species.maximum_hit_points,
             attack_power=species.attack_power,
@@ -187,13 +194,14 @@ class Monster(Actor):
         return True
 
     def __str__(self) -> str:
+        assert self.fighter
         return f'{self.name}!{self.identifier} with {self.fighter.hit_points}/{self.fighter.maximum_hit_points} hp at {self.position}'
 
 
 class Item(Entity):
     '''An instance of an Item'''
 
-    def __init__(self, kind: items.Item, position: Point = None, name: str = None):
+    def __init__(self, kind: items.Item, position: Optional[Point] = None, name: Optional[str] = None):
         super().__init__(kind.symbol,
                          position=position,
                          blocks_movement=False,

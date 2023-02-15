@@ -1,3 +1,12 @@
+# Eryn Wells <eryn@erynwells.me>
+
+'''
+Map tiles and tile related things.
+
+Maps are represented with 2-dimensional numpy arrays with the `dtype`s defined
+here. Tiles are instances of those dtypes.
+'''
+
 from typing import Tuple
 
 import numpy as np

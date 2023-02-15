@@ -82,6 +82,7 @@ class Map:
         return self.tile_is_in_bounds(point) and self.tiles[point.x, point.y]['walkable']
 
     def point_is_explored(self, point: Point) -> bool:
+        '''Return True if the tile at the given point has been explored by the player'''
         return self.tile_is_in_bounds(point) and self.explored[point.x, point.y]
 
     def highlight_points(self, points: Iterable[Point]):

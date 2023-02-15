@@ -12,13 +12,16 @@ class MapGenerator:
 
     @property
     def up_stairs(self) -> List[Point]:
+        '''The location of any routes to a higher floor of the dungeon.'''
         raise NotImplementedError()
 
     @property
     def down_stairs(self) -> List[Point]:
+        '''The location of any routes to a lower floor of the dungeon.'''
         raise NotImplementedError()
 
     def generate(self, tiles: np.ndarray):
+        '''Generate a map and place it in `tiles`'''
         raise NotImplementedError()
 
 

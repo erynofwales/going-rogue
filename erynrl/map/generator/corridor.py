@@ -1,3 +1,5 @@
+# Eryn Wells <eryn@erynwells.me>
+
 '''
 Defines an abstract CorridorGenerator and several concrete subclasses. These classes generate corridors between rooms.
 '''

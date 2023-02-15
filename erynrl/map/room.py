@@ -1,6 +1,9 @@
-from typing import Iterator
+# Eryn Wells <eryn@erynwels.me>
 
-from ..geometry import Point, Rect
+'''
+Implements an abstract Room class, and subclasses that implement it. Rooms are basic components of maps.
+'''
+
 
 
 class Room:

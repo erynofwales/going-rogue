@@ -64,7 +64,7 @@ class BumpAction(MoveAction):
 
     Attributes
     ----------
-    direction : Direction
+    direction : Vector
         The direction to test
     '''
 

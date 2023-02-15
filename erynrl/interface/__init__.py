@@ -1,5 +1,9 @@
 # Eryn Wells <eryn@erynwells.me>
 
+'''
+The game's graphical user interface
+'''
+
 from typing import List
 
 from tcod.console import Console

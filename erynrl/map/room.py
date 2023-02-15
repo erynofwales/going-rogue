@@ -4,6 +4,9 @@
 Implements an abstract Room class, and subclasses that implement it. Rooms are basic components of maps.
 '''
 
+from typing import Iterator
+
+from ..geometry import Rect
 
 
 class Room:

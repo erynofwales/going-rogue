@@ -186,6 +186,16 @@ class Rect:
         '''A Point in the middle of the Rect'''
         return Point(self.mid_x, self.mid_y)
 
+    @property
+    def edges(self) -> Iterator[int]:
+        '''
+        An iterator over the edges of this Rect in the order of: `min_x`, `max_x`, `min_y`, `max_y`.
+        '''
+        yield self.min_x
+        yield self.max_x
+        yield self.min_y
+        yield self.max_y
+
     def intersects(self, other: 'Rect') -> bool:
         '''Returns `True` if `other` intersects this Rect.'''
         if other.min_x > self.max_x:

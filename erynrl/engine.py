@@ -220,7 +220,7 @@ class Engine:
         self.map.visible[:] = tcod.map.compute_fov(
             self.map.tiles['transparent'],
             tuple(self.hero.position),
-            radius=30)
+            radius=self.hero.sight_radius)
 
         # Add visible tiles to the explored grid
         self.map.explored |= self.map.visible

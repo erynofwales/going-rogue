@@ -155,7 +155,7 @@ class Hero(Actor):
     @property
     def sight_radius(self) -> int:
         # TODO: Make this configurable
-        return 8
+        return 0
 
     def __str__(self) -> str:
         assert self.fighter

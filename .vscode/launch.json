@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "ErynRL",
+            "name": "ErynRL (Sandbox)",
             "type": "python",
             "request": "launch",
             "module": "erynrl",

@@ -6,6 +6,9 @@
 	],
 	"settings": {
 		"editor.formatOnSave": true,
-		"python.analysis.typeCheckingMode": "basic"
+		"python.analysis.typeCheckingMode": "basic",
+		"files.exclude": {
+			".venv/": true
+		}
 	}
 }

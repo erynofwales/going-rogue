@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "ErynRL",
+            "type": "python",
+            "request": "launch",
+            "module": "erynrl",
+            "args": [],
+            "justMyCode": true
+        },
+        {
             "name": "ErynRL (Sandbox)",
             "type": "python",
             "request": "launch",

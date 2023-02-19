@@ -1,15 +1,17 @@
+# Eryn Wells <eryn@erynwells.me>
+
 import random
 from copy import copy
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
-import numpy as np
 import tcod
 
 from ... import log
 from ...geometry import Point, Rect, Size
-from ..room import Room, RectangularRoom
-from ..tile import Empty, Floor, StairsUp, StairsDown, Wall
+
+if TYPE_CHECKING:
+    from .. import Map
 
 
 class RoomGenerator:
@@ -29,7 +31,9 @@ class RoomGenerator:
     def __init__(self, *, size: Size, config: Optional[Configuration] = None):
         self.size = size
         self.configuration = config if config else copy(RoomGenerator.DefaultConfiguration)
+
         self.rooms: List[Room] = []
+
         self.up_stairs: List[Point] = []
         self.down_stairs: List[Point] = []
 
@@ -54,20 +58,23 @@ class RoomGenerator:
         '''
         raise NotImplementedError()
 
-    def apply(self, tiles: np.ndarray):
+    # pylint: disable=redefined-builtin
+    def apply(self, map: 'Map'):
         '''Apply the generated rooms to a tile array'''
-        self._apply(tiles)
-        self._apply_stairs(tiles)
+        self._apply(map)
+        self._apply_stairs(map.tiles)
 
-    def _apply(self, tiles: np.ndarray):
+    def _apply(self, map: 'Map'):
         '''
         Apply the generated list of rooms to an array of tiles. Subclasses must implement this.
 
         Arguments
         ---------
-        tiles: np.ndarray
-            The array of tiles to update.
+        map: Map
+            The game map to apply the generated room to
         '''
+        tiles = map.tiles
+
         for room in self.rooms:
             for pt in room.floor_points:
                 tiles[pt.x, pt.y] = Floor
@@ -76,6 +83,7 @@ class RoomGenerator:
             for pt in room.wall_points:
                 if tiles[pt.x, pt.y] != Empty:
                     continue
+
                 tiles[pt.x, pt.y] = Wall
 
     def _generate_stairs(self):

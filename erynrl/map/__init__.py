@@ -12,7 +12,7 @@ import numpy as np
 import numpy.typing as npt
 import tcod
 
-from ..engine import Configuration
+from ..configuration import Configuration
 from ..geometry import Point, Rect, Size
 from .generator import MapGenerator
 from .tile import Empty, Shroud
@@ -28,7 +28,6 @@ class Map:
         shape = map_size.numpy_shape
 
         self.tiles = np.full(shape, fill_value=Empty, order='F')
-        generator.generate(self.tiles)
 
         self.up_stairs = generator.up_stairs
         self.down_stairs = generator.down_stairs
@@ -41,6 +40,8 @@ class Map:
         self.explored = np.full(shape, fill_value=should_mark_all_tiles_explored, order='F')
 
         self.__walkable_points = None
+
+        generator.generate(self)
 
     @property
     def bounds(self) -> Rect:

@@ -33,7 +33,10 @@ class Point:
         bool
             True if this point is adjacent to the other point
         '''
-        return (self.x in (other.x - 1, other.x + 1)) and (self.y in (other.y - 1, other.y + 1))
+        if self == other:
+            return False
+
+        return (self.x - 1 <= other.x <= self.x + 1) and (self.y - 1 <= other.y <= self.y + 1)
 
     def direction_to_adjacent_point(self, other: 'Point') -> Optional['Vector']:
         '''Given a point directly adjacent to `self`'''

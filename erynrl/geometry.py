@@ -48,6 +48,10 @@ class Point:
         '''Compute the Euclidean distance to another Point'''
         return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
+    def manhattan_distance_to(self, other: 'Point') -> int:
+        '''Compute the Manhattan distance to another Point'''
+        return abs(self.x - other.x) + abs(self.y - other.y)
+
     def __add__(self, other: 'Vector') -> 'Point':
         if not isinstance(other, Vector):
             raise TypeError('Only Vector can be added to a Point')

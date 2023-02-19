@@ -1,7 +1,8 @@
 # Eryn Wells <eryn@erynwells.me>
 
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Optional, Tuple
+
 
 @dataclass(frozen=True)
 class Item:
@@ -27,9 +28,11 @@ class Item:
     name: str
     description: str
     foreground_color: Tuple[int, int, int]
-    background_color: Tuple[int, int, int] = None
+    background_color: Optional[Tuple[int, int, int]] = None
 
-Corpse = Item('%',
-              name="Corpse",
-              description="The corpse of a once-living being",
-              foreground_color=(128, 128, 255))
+
+Corpse = Item(
+    '%',
+    name="Corpse",
+    description="The corpse of a once-living being",
+    foreground_color=(128, 128, 255))

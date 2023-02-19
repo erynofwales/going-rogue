@@ -33,3 +33,20 @@ def test_point_manhattan_distance():
     point_b = Point(8, 5)
 
     assert point_a.manhattan_distance_to(point_b) == 8
+
+
+def test_point_is_adjacent_to():
+    '''Check that Point.is_adjacent_to correctly computes adjacency'''
+    test_point = Point(5, 5)
+
+    assert not test_point.is_adjacent_to(test_point), \
+        f"{test_point!s} should not be considered adjacent to itself"
+
+    for neighbor in test_point.neighbors:
+        assert test_point.is_adjacent_to(neighbor), \
+            f"Neighbor {neighbor!s} that was not considered adjacent to {test_point!s}"
+
+    assert not test_point.is_adjacent_to(Point(3, 5))
+    assert not test_point.is_adjacent_to(Point(7, 5))
+    assert not test_point.is_adjacent_to(Point(5, 3))
+    assert not test_point.is_adjacent_to(Point(5, 7))

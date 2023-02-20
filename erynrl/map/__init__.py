@@ -103,3 +103,12 @@ class Map:
             condlist=[self.highlighted, self.visible, self.explored],
             choicelist=[self.tiles['highlighted'], self.tiles['light'], self.tiles['dark']],
             default=Shroud)
+
+    def __str__(self):
+        string = ''
+
+        tiles = self.tiles['light']['ch']
+        for row in tiles:
+            string += ''.join(chr(n) for n in row) + '\n'
+
+        return string

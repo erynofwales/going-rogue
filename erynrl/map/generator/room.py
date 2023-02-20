@@ -9,6 +9,8 @@ import tcod
 
 from ... import log
 from ...geometry import Point, Rect, Size
+from ..room import RectangularRoom
+from ..tile import Empty, Floor, StairsDown, StairsUp, Wall
 
 if TYPE_CHECKING:
     from .. import Map

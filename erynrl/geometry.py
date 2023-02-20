@@ -196,9 +196,9 @@ class Rect:
     @property
     def corners(self) -> Iterator[Point]:
         yield self.origin
-        yield self.origin + Vector(self.max_x, 0)
-        yield self.origin + Vector(self.max_x, self.max_y)
-        yield self.origin + Vector(0, self.max_y)
+        yield Point(self.max_x, self.min_y)
+        yield Point(self.min_x, self.max_y)
+        yield Point(self.max_x, self.max_y)
 
     @property
     def edges(self) -> Iterator[int]:

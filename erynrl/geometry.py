@@ -195,6 +195,7 @@ class Rect:
 
     @property
     def corners(self) -> Iterator[Point]:
+        '''An iterator over the corners of this rectangle'''
         yield self.origin
         yield Point(self.max_x, self.min_y)
         yield Point(self.min_x, self.max_y)

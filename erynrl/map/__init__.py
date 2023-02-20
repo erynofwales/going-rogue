@@ -33,6 +33,7 @@ class Map:
         self.down_stairs = generator.down_stairs
 
         self.highlighted = np.full(shape, fill_value=False, order='F')
+
         # Map tiles that are currently visible to the player
         self.visible = np.full(shape, fill_value=False, order='F')
         # Map tiles that the player has explored
@@ -66,6 +67,12 @@ class Map:
                 self.tiles['light'],
                 self.tiles['dark']],
             default=Shroud)
+
+    def update_visible_tiles(self, point: Point, radius: int):
+        field_of_view = tcod.map.compute_fov(self.tiles['transparent'], tuple(point), radius=radius)
+
+        # The player's computed field of view
+        self.visible[:] = field_of_view
 
     def random_walkable_position(self) -> Point:
         '''Return a random walkable point on the map.'''

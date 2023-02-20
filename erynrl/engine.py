@@ -216,11 +216,7 @@ class Engine:
 
     def update_field_of_view(self):
         '''Compute visible area of the map based on the player's position and point of view.'''
-        # FIXME: Move this to the Map class
-        self.map.visible[:] = tcod.map.compute_fov(
-            self.map.tiles['transparent'],
-            tuple(self.hero.position),
-            radius=self.hero.sight_radius)
+        self.map.update_visible_tiles(self.hero.position, self.hero.sight_radius)
 
         # Add visible tiles to the explored grid
         self.map.explored |= self.map.visible

@@ -6,7 +6,7 @@ Implements an abstract Room class, and subclasses that implement it. Rooms are b
 
 from typing import Iterator
 
-from ..geometry import Rect
+from ..geometry import Point, Rect
 
 
 class Room:

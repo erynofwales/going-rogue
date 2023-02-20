@@ -41,8 +41,10 @@ class RoomGenerator:
         '''Generate rooms and stairs'''
         did_generate_rooms = self._generate()
 
-        if did_generate_rooms:
-            self._generate_stairs()
+        if not did_generate_rooms:
+            return
+
+        self._generate_stairs()
 
     def _generate(self) -> bool:
         '''

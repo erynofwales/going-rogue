@@ -1,10 +1,15 @@
-from typing import List
+# Eryn Wells <eryn@erynwells.me>
+
+from typing import List, TYPE_CHECKING
 
 import numpy as np
 
 from .corridor import CorridorGenerator
 from .room import RoomGenerator
 from ...geometry import Point
+
+if TYPE_CHECKING:
+    from .. import Map
 
 
 class MapGenerator:

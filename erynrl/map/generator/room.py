@@ -9,7 +9,7 @@ import tcod
 
 from ... import log
 from ...geometry import Point, Rect, Size
-from ..room import RectangularRoom
+from ..room import RectangularRoom, Room
 from ..tile import Empty, Floor, StairsDown, StairsUp, Wall
 
 if TYPE_CHECKING:

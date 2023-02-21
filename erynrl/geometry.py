@@ -229,23 +229,25 @@ class Rect:
 
     def inset_rect(self, top: int = 0, right: int = 0, bottom: int = 0, left: int = 0) -> 'Rect':
         '''
-        Return a new Rect inset from this rect by the specified values. Arguments are listed in clockwise order around
-        the permeter. This method doesn't validate the returned Rect, or transform it to a canonical representation with
-        the origin at the top-left.
+        Create a new Rect inset from this rect by the specified values.
 
-        Parameters
-        ----------
-        top : int
+        Arguments are listed in clockwise order around the permeter. This method
+        doesn't validate the returned Rect, or transform it to a canonical
+        representation with the origin at the top-left.
+
+        ### Parameters
+
+        `top`: int
             Amount to inset from the top
-        right : int
+        `right`: int
             Amount to inset from the right
-        bottom : int
+        `bottom`: int
             Amount to inset from the bottom
-        left : int
+        `left`: int
             Amount to inset from the left
 
-        Returns
-        -------
+        ### Returns
+
         Rect
             A new Rect, inset from `self` by the given amount on each side
         '''

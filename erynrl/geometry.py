@@ -252,6 +252,15 @@ class Rect:
         return Rect(Point(self.origin.x + left, self.origin.y + top),
                     Size(self.size.width - right - left, self.size.height - top - bottom))
 
+    def __contains__(self, pt: Point) -> bool:
+        if pt.x < self.min_x or pt.x > self.max_x:
+            return False
+
+        if pt.y < self.min_y or pt.y > self.max_y:
+            return False
+
+        return True
+
     def __iter__(self):
         yield tuple(self.origin)
         yield tuple(self.size)

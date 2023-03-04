@@ -1,7 +1,6 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import random
-from copy import copy
 from dataclasses import dataclass
 from typing import List, Optional, TYPE_CHECKING
 
@@ -21,18 +20,13 @@ class RoomGenerator:
 
     @dataclass
     class Configuration:
-        number_of_rooms: int
-        minimum_room_size: Size
-        maximum_room_size: Size
-
-    DefaultConfiguration = Configuration(
-        number_of_rooms=30,
-        minimum_room_size=Size(7, 7),
-        maximum_room_size=Size(20, 20))
+        number_of_rooms: int = 30
+        minimum_room_size: Size = Size(7, 7)
+        maximum_room_size: Size = Size(20, 20)
 
     def __init__(self, *, size: Size, config: Optional[Configuration] = None):
         self.size = size
-        self.configuration = config if config else copy(RoomGenerator.DefaultConfiguration)
+        self.configuration = config if config else RoomGenerator.Configuration()
 
         self.rooms: List[Room] = []
 

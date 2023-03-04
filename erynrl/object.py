@@ -29,10 +29,11 @@ class RenderOrder(Enum):
 class Entity:
     '''A single-tile drawable entity with a symbol and position
 
-    Attributes
-    ----------
+    ### Attributes
+
     identifier : int
-        A numerical value that uniquely identifies this entity across the entire game
+        A numerical value that uniquely identifies this entity across the entire
+        game
     position : Point
         The Entity's location on the map
     foreground : Tuple[int, int, int]
@@ -42,13 +43,16 @@ class Entity:
     symbol : str
         A single character string that represents this character on the map
     blocks_movement : bool
-        True if this Entity blocks other Entities from moving through its position
+        True if this Entity blocks other Entities from moving through its
+        position
     render_order : RenderOrder
-        One of the RenderOrder values that specifies a layer at which this entity will be rendered. Higher values are
-        rendered on top of lower values.
+        One of the RenderOrder values that specifies a layer at which this
+        entity will be rendered. Higher values are rendered on top of lower
+        values.
     '''
 
-    # A monotonically increasing identifier to help differentiate between entities that otherwise look identical
+    # A monotonically increasing identifier to help differentiate between
+    # entities that otherwise look identical
     __next_identifier = 1
 
     def __init__(

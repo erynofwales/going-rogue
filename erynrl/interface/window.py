@@ -6,7 +6,7 @@ import numpy as np
 from tcod.console import Console
 
 from .. import log
-from ..geometry import Point, Rect, Vector
+from ..geometry import Point, Rect, Size, Vector
 from ..map import Map
 from ..object import Entity, Hero
 
@@ -20,7 +20,10 @@ class Window:
 
     @property
     def drawable_bounds(self) -> Rect:
-        '''The bounds of the window that is drawable, inset by any frame'''
+        '''
+        The bounds of the window that is drawable, inset by its frame if
+        `is_framed` is `True`.
+        '''
         if self.is_framed:
             return self.bounds.inset_rect(1, 1, 1, 1)
         return self.bounds
@@ -34,6 +37,11 @@ class Window:
                 self.bounds.size.width,
                 self.bounds.size.height)
 
+        drawable_bounds = self.drawable_bounds
+        console.draw_rect(drawable_bounds.min_x, drawable_bounds.min_y,
+                          drawable_bounds.width, drawable_bounds.height,
+                          ord(' '), (255, 255, 255), (0, 0, 0))
+
 
 class MapWindow(Window):
     '''A Window that displays a game map'''
@@ -44,29 +52,78 @@ class MapWindow(Window):
         self.map = map
 
         self.drawable_map_bounds = map.bounds
-        self.offset = Vector()
         self.entities: List[Entity] = []
 
+        self._draw_bounds = self.drawable_bounds
+
     def update_drawable_map_bounds(self, hero: Hero):
+        '''
+        Figure out what portion of the map is drawable and update
+        `self.drawable_map_bounds`. This method attempts to keep the hero
+        centered in the map viewport, while not overscrolling the map in either
+        direction.
+        '''
         bounds = self.drawable_bounds
         map_bounds = self.map.bounds
 
-        if map_bounds.width < bounds.width and map_bounds.height < bounds.height:
-            # We can draw the whole map in the drawable bounds
+        viewport_is_wider_than_map = bounds.width > map_bounds.width
+        viewport_is_taller_than_map = bounds.height > map_bounds.height
+
+        if viewport_is_wider_than_map and viewport_is_taller_than_map:
+            # The whole map fits within the window's drawable bounds
             self.drawable_map_bounds = map_bounds
+            return
 
         # Attempt to keep the player centered in the viewport.
-
         hero_point = hero.position
 
-        x = min(max(0, hero_point.x - bounds.mid_x), map_bounds.max_x - bounds.width)
-        y = min(max(0, hero_point.y - bounds.mid_y), map_bounds.max_y - bounds.height)
-        origin = Point(x, y)
+        if viewport_is_wider_than_map:
+            x = 0
+        else:
+            x = min(max(0, hero_point.x - bounds.mid_x), map_bounds.max_x - bounds.width)
 
-        self.drawable_map_bounds = Rect(origin, bounds.size)
+        if viewport_is_taller_than_map:
+            y = 0
+        else:
+            y = min(max(0, hero_point.y - bounds.mid_y), map_bounds.max_y - bounds.height)
+
+        origin = Point(x, y)
+        size = Size(min(bounds.width, map_bounds.width), min(bounds.height, map_bounds.height))
+
+        self.drawable_map_bounds = Rect(origin, size)
+
+    def _update_draw_bounds(self):
+        '''
+        The area where the map should actually be drawn, accounting for the size
+        of the viewport (`drawable_bounds`)and the size of the map (`self.map.bounds`).
+        '''
+        drawable_map_bounds = self.drawable_map_bounds
+        drawable_bounds = self.drawable_bounds
+
+        viewport_is_wider_than_map = drawable_bounds.width >= drawable_map_bounds.width
+        viewport_is_taller_than_map = drawable_bounds.height >= drawable_map_bounds.height
+
+        if viewport_is_wider_than_map:
+            # Center the map horizontally in the viewport
+            origin_x = drawable_bounds.min_x + (drawable_bounds.width - drawable_map_bounds.width) // 2
+            width = drawable_map_bounds.width
+        else:
+            origin_x = drawable_bounds.min_x
+            width = drawable_bounds.width
+
+        if viewport_is_taller_than_map:
+            # Center the map vertically in the viewport
+            origin_y = drawable_bounds.min_y + (drawable_bounds.height - drawable_map_bounds.height) // 2
+            height = drawable_map_bounds.height
+        else:
+            origin_y = drawable_bounds.min_y
+            height = drawable_bounds.height
+
+        self._draw_bounds = Rect(Point(origin_x, origin_y), Size(width, height))
 
     def draw(self, console: Console):
         super().draw(console)
+        self._update_draw_bounds()
         self._draw_map(console)
         self._draw_entities(console)
 
@@ -75,43 +132,44 @@ class MapWindow(Window):
         drawable_bounds = self.drawable_bounds
 
         log.UI.info('Drawing map')
-        log.UI.info('|- map bounds: %s', drawable_map_bounds)
-        log.UI.info('|- window bounds: %s', drawable_bounds)
 
         map_slice = np.s_[
-            drawable_map_bounds.min_x:drawable_map_bounds.max_x + 1,
-            drawable_map_bounds.min_y:drawable_map_bounds.max_y + 1]
+            drawable_map_bounds.min_x: drawable_map_bounds.max_x + 1,
+            drawable_map_bounds.min_y: drawable_map_bounds.max_y + 1]
 
+        console_draw_bounds = self._draw_bounds
         console_slice = np.s_[
-            drawable_bounds.min_x:drawable_bounds.max_x + 1,
-            drawable_bounds.min_y:drawable_bounds.max_y + 1]
+            console_draw_bounds.min_x: console_draw_bounds.max_x + 1,
+            console_draw_bounds.min_y: console_draw_bounds.max_y + 1]
 
-        log.UI.info('|- map slice: %s', map_slice)
-        log.UI.info('`- console slice: %s', console_slice)
+        log.UI.debug('Map bounds=%s, slice=%s', drawable_map_bounds, map_slice)
+        log.UI.debug('Console bounds=%s, slice=%s', drawable_bounds, console_slice)
 
         console.tiles_rgb[console_slice] = self.map.composited_tiles[map_slice]
 
+        log.UI.info('Done drawing map')
+
     def _draw_entities(self, console):
         map_bounds_vector = Vector.from_point(self.drawable_map_bounds.origin)
-        drawable_bounds_vector = Vector.from_point(self.drawable_bounds.origin)
+        draw_bounds_vector = Vector.from_point(self._draw_bounds.origin)
 
         log.UI.info('Drawing entities')
 
         for ent in self.entities:
             # Only draw entities that are in the field of view
-            if not self.map.visible[tuple(ent.position)]:
+            if not self.map.point_is_visible(ent.position):
                 continue
 
-            # Entity positions are 0-based relative to the (0, 0) point of the Map. In order to render them in the
-            # correct position in the console, we need to offset the position.
+            # Entity positions are relative to the (0, 0) point of the Map. In
+            # order to render them in the correct position in the console, we
+            # need to transform them into viewport-relative coordinates.
             entity_position = ent.position
-            map_tile_at_entity_position = self.map.composited_tiles[entity_position.x, entity_position.y]
+            map_tile_at_entity_position = self.map.composited_tiles[entity_position.numpy_index]
 
-            position = ent.position - map_bounds_vector + drawable_bounds_vector
+            position = ent.position - map_bounds_vector + draw_bounds_vector
 
             if isinstance(ent, Hero):
-                log.UI.info('|- hero position on map %s', entity_position)
-                log.UI.info('`- position in window %s', position)
+                log.UI.debug('Hero position: map=%s, window=%s', entity_position, position)
 
             console.print(
                 x=position.x,
@@ -119,3 +177,5 @@ class MapWindow(Window):
                 string=ent.symbol,
                 fg=ent.foreground,
                 bg=tuple(map_tile_at_entity_position['bg'][:3]))
+
+        log.UI.info('Done drawing entities')

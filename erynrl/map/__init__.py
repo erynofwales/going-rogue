@@ -25,8 +25,9 @@ class Map:
         self.configuration = config
 
         map_size = config.map_size
-        shape = map_size.numpy_shape
+        self._bounds = Rect(Point(), map_size)
 
+        shape = map_size.numpy_shape
         self.tiles = np.full(shape, fill_value=Empty, order='F')
 
         self.up_stairs = generator.up_stairs
@@ -47,7 +48,7 @@ class Map:
     @property
     def bounds(self) -> Rect:
         '''The bounds of the map'''
-        return Rect(Point(), self.size)
+        return self._bounds
 
     @property
     def size(self) -> Size:
@@ -87,11 +88,21 @@ class Map:
 
     def tile_is_walkable(self, point: Point) -> bool:
         '''Return True if the tile at the given point is walkable'''
-        return self.tile_is_in_bounds(point) and self.tiles[point.x, point.y]['walkable']
+        if not self.tile_is_in_bounds(point):
+            raise ValueError(f'Point {point!s} is not in bounds')
+        return self.tiles[point.numpy_index]['walkable']
+
+    def point_is_visible(self, point: Point) -> bool:
+        '''Return True if the point is visible to the player'''
+        if not self.tile_is_in_bounds(point):
+            raise ValueError(f'Point {point!s} is not in bounds')
+        return self.visible[point.numpy_index]
 
     def point_is_explored(self, point: Point) -> bool:
         '''Return True if the tile at the given point has been explored by the player'''
-        return self.tile_is_in_bounds(point) and self.explored[point.x, point.y]
+        if not self.tile_is_in_bounds(point):
+            raise ValueError(f'Point {point!s} is not in bounds')
+        return self.explored[point.numpy_index]
 
     def highlight_points(self, points: Iterable[Point]):
         '''Update the highlight graph with the list of points to highlight.'''

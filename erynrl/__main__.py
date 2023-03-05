@@ -6,8 +6,9 @@ import argparse
 import sys
 import tcod
 from . import log
-from .configuration import Configuration, FontConfiguration, FontConfigurationError, MAP_SIZE, CONSOLE_SIZE
+from .configuration import Configuration, FontConfiguration, FontConfigurationError
 from .engine import Engine
+from .geometry import Size
 
 
 def parse_args(argv, *a, **kw):
@@ -44,6 +45,7 @@ def main(argv):
 
     configuration = Configuration(
         console_font_configuration=font_config,
+        map_size=Size(80, 24),
         sandbox=args.sandbox)
 
     engine = Engine(configuration)

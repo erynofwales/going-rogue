@@ -39,18 +39,16 @@ def main(argv):
         else:
             font_config = FontConfiguration.default_configuration()
     except FontConfigurationError as error:
-        log.ROOT.error('Unable to create a default font configuration: %s', error)
+        log.ROOT.error('Unable to create a font configuration: %s', error)
         return -1
 
     configuration = Configuration(
-        console_size=CONSOLE_SIZE,
-        console_font_config=font_config,
-        map_size=MAP_SIZE,
+        console_font_configuration=font_config,
         sandbox=args.sandbox)
 
     engine = Engine(configuration)
 
-    tileset = configuration.console_font_config.tileset
+    tileset = configuration.console_font_configuration.tileset
     console = tcod.Console(*configuration.console_size.numpy_shape, order='F')
     with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
         engine.run_event_loop(context, console)

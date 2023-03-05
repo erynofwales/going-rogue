@@ -166,10 +166,23 @@ class TilesheetFontConfiguration(FontConfiguration):
 
 @dataclass
 class Configuration:
-    '''Configuration of the game engine'''
-    console_size: Size
-    console_font_config: FontConfiguration
+    '''
+    Configuration of the game engine
 
-    map_size: Size
+    ### Attributes
+
+    console_font_configuration : FontConfiguration
+        A configuration object that defines the font to use for rendering the console
+    console_size : Size
+        The size of the console in tiles
+    map_size : Size
+        The size of the map in tiles
+    sandbox : bool
+        If this flag is toggled on, the map is rendered with no shroud
+    '''
+    console_font_configuration: FontConfiguration
+
+    console_size: Size = CONSOLE_SIZE
+    map_size: Size = MAP_SIZE
 
     sandbox: bool = False

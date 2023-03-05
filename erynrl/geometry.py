@@ -73,6 +73,18 @@ class Point:
             raise TypeError('Only Vector can be added to a Point')
         return Point(self.x - other.dx, self.y - other.dy)
 
+    def __lt__(self, other: 'Point') -> bool:
+        return self.x < other.x and self.y < other.y
+
+    def __le__(self, other: 'Point') -> bool:
+        return self.x <= other.x and self.y <= other.y
+
+    def __gt__(self, other: 'Point') -> bool:
+        return self.x > other.x and self.y > other.y
+
+    def __ge__(self, other: 'Point') -> bool:
+        return self.x >= other.x and self.y >= other.y
+
     def __iter__(self):
         yield self.x
         yield self.y

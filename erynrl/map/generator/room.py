@@ -75,14 +75,16 @@ class RoomGenerator:
 
         for room in self.rooms:
             for pt in room.floor_points:
-                tiles[pt.x, pt.y] = Floor
+                tiles[pt.numpy_index] = Floor
 
         for room in self.rooms:
             for pt in room.wall_points:
-                if tiles[pt.x, pt.y] != Empty:
+                idx = pt.numpy_index
+
+                if tiles[idx] != Empty:
                     continue
 
-                tiles[pt.x, pt.y] = Wall
+                tiles[idx] = Wall
 
     def _generate_stairs(self):
         up_stair_room = random.choice(self.rooms)
@@ -98,9 +100,9 @@ class RoomGenerator:
 
     def _apply_stairs(self, tiles):
         for pt in self.up_stairs:
-            tiles[pt.x, pt.y] = StairsUp
+            tiles[pt.numpy_index] = StairsUp
         for pt in self.down_stairs:
-            tiles[pt.x, pt.y] = StairsDown
+            tiles[pt.numpy_index] = StairsDown
 
 
 class OneBigRoomGenerator(RoomGenerator):

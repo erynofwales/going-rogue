@@ -38,9 +38,12 @@ class ElbowCorridorGenerator(CorridorGenerator):
     ```
     For each pair of rooms:
         1. Find the midpoint of the bounding rect of each room
-        2. Calculate an elbow point
-        3. Draw a path from the midpoint of the first room to the elbow point
-        4. Draw a path from the elbow point to the midpoint of the second room
+        2. For each pair of rooms:
+            1. Calculate an elbow point by taking the x coordinate of one room
+               and the y coordinate of the other room, choosing which x and which
+               y at random.
+            2. Draw a path from the midpoint of the first room to the elbow point
+            3. Draw a path from the elbow point to the midpoint of the second room
     ```
     '''
 
@@ -51,7 +54,9 @@ class ElbowCorridorGenerator(CorridorGenerator):
         if len(rooms) < 2:
             return True
 
-        for (left_room, right_room) in pairwise(rooms):
+        sorted_rooms = sorted(rooms, key=lambda r: r.bounds.origin)
+
+        for (left_room, right_room) in pairwise(sorted_rooms):
             corridor = self._generate_corridor_between(left_room, right_room)
             self.corridors.append(corridor)
 

@@ -5,12 +5,14 @@ import random
 from dataclasses import dataclass
 from typing import Iterable, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
+import numpy as np
 import tcod
 
 from ... import log
 from ...geometry import Point, Rect, Size
-from ..room import RectangularRoom, Room
-from ..tile import Empty, Floor, StairsDown, StairsUp, Wall
+from ..room import FreeformRoom, RectangularRoom, Room
+from ..tile import Empty, Floor, StairsDown, StairsUp, Wall, tile_datatype
+from .cellular_atomata import CellularAtomataMapGenerator
 
 if TYPE_CHECKING:
     from .. import Map
@@ -194,6 +196,45 @@ class RoomMethod:
 class RectangularRoomMethod(RoomMethod):
     def room_in_rect(self, rect: Rect) -> Optional[Room]:
         return RectangularRoom(rect)
+
+
+class CellularAtomatonRoomMethod(RoomMethod):
+
+    def __init__(self, cellular_atomaton_config: CellularAtomataMapGenerator.Configuration):
+        self.cellular_atomaton_configuration = cellular_atomaton_config
+
+    def room_in_rect(self, rect: Rect) -> Optional[Room]:
+        # The cellular atomaton doesn't generate any walls, just floors and
+        # emptiness. Inset it by 1 all the way around so that we can draw walls
+        # around it.
+
+        atomaton_rect = rect.inset_rect(1, 1, 1, 1)
+        room_generator = CellularAtomataMapGenerator(atomaton_rect, self.cellular_atomaton_configuration)
+        room_generator.generate()
+
+        # Create a new tile array and copy the result of the atomaton into it,
+        # then draw walls everywhere that neighbors a floor tile.
+
+        width = rect.width
+        height = rect.height
+
+        room_tiles = np.full((height, width), fill_value=Empty, dtype=tile_datatype, order='C')
+        room_tiles[1:height - 1, 1:width - 1] = room_generator.tiles
+
+        for y, x in np.ndindex(room_tiles.shape):
+            if room_tiles[y, x] == Floor:
+                continue
+
+            for neighbor in Point(x, y).neighbors:
+                try:
+                    if room_tiles[neighbor.y, neighbor.x] != Floor:
+                        continue
+                    room_tiles[y, x] = Wall
+                    break
+                except IndexError:
+                    pass
+
+        return FreeformRoom(rect, room_tiles)
 
 
 class OrRoomMethod(RoomMethod):

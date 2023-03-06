@@ -26,7 +26,7 @@ def main(argv):
 
     log.init()
 
-    bounds = Rect(Point(), Size(20, 20))
+    bounds = Rect(Point(), Size(60, 20))
 
     config = CellularAtomataMapGenerator.Configuration()
     config.number_of_rounds = args.rounds

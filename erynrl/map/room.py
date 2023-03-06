@@ -4,9 +4,12 @@
 Implements an abstract Room class, and subclasses that implement it. Rooms are basic components of maps.
 '''
 
-from typing import Iterator
+from typing import Iterable
 
-from ..geometry import Point, Rect
+import numpy as np
+
+from ..geometry import Point, Rect, Vector
+from .tile import Floor, Wall
 
 
 class Room:
@@ -21,17 +24,17 @@ class Room:
         return self.bounds.midpoint
 
     @property
-    def wall_points(self) -> Iterator[Point]:
+    def wall_points(self) -> Iterable[Point]:
         '''An iterator over all the points that make up the walls of this room.'''
         raise NotImplementedError()
 
     @property
-    def floor_points(self) -> Iterator[Point]:
+    def floor_points(self) -> Iterable[Point]:
         '''An iterator over all the points that make of the floor of this room'''
         raise NotImplementedError()
 
     @property
-    def walkable_tiles(self) -> Iterator[Point]:
+    def walkable_tiles(self) -> Iterable[Point]:
         '''An iterator over all the points that are walkable in this room.'''
         raise NotImplementedError()
 
@@ -47,14 +50,14 @@ class RectangularRoom(Room):
     '''
 
     @property
-    def walkable_tiles(self) -> Iterator[Point]:
+    def walkable_tiles(self) -> Iterable[Point]:
         floor_rect = self.bounds.inset_rect(top=1, right=1, bottom=1, left=1)
         for y in range(floor_rect.min_y, floor_rect.max_y + 1):
             for x in range(floor_rect.min_x, floor_rect.max_x + 1):
                 yield Point(x, y)
 
     @property
-    def wall_points(self) -> Iterator[Point]:
+    def wall_points(self) -> Iterable[Point]:
         bounds = self.bounds
 
         min_y = bounds.min_y
@@ -71,7 +74,7 @@ class RectangularRoom(Room):
             yield Point(max_x, y)
 
     @property
-    def floor_points(self) -> Iterator[Point]:
+    def floor_points(self) -> Iterable[Point]:
         inset_bounds = self.bounds.inset_rect(1, 1, 1, 1)
 
         min_y = inset_bounds.min_y
@@ -85,3 +88,30 @@ class RectangularRoom(Room):
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.bounds})'
+
+
+class FreeformRoom(Room):
+    def __init__(self, bounds: Rect, tiles: np.ndarray):
+        super().__init__(bounds)
+        self.tiles = tiles
+
+    @property
+    def floor_points(self) -> Iterable[Point]:
+        room_origin_vector = Vector.from_point(self.bounds.origin)
+        for y, x in np.ndindex(self.tiles.shape):
+            if self.tiles[y, x] == Floor:
+                yield Point(x, y) + room_origin_vector
+
+    @property
+    def wall_points(self) -> Iterable[Point]:
+        room_origin_vector = Vector.from_point(self.bounds.origin)
+        for y, x in np.ndindex(self.tiles.shape):
+            if self.tiles[y, x] == Wall:
+                yield Point(x, y) + room_origin_vector
+
+    @property
+    def walkable_tiles(self) -> Iterable[Point]:
+        room_origin_vector = Vector.from_point(self.bounds.origin)
+        for y, x in np.ndindex(self.tiles.shape):
+            if self.tiles[y, x]['walkable']:
+                yield Point(x, y) + room_origin_vector

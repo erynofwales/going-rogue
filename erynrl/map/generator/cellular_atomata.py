@@ -2,14 +2,16 @@
 
 import random
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 import numpy as np
 
 from ... import log
-from ...geometry import Point, Rect
-from ..grid import make_grid
-from ..tile import Floor, Wall
+from ...geometry import Point, Rect, Vector
+from ..tile import Empty, Floor, Wall, tile_datatype
+
+if TYPE_CHECKING:
+    from .. import Map
 
 
 class CellularAtomataMapGenerator:
@@ -38,6 +40,7 @@ class CellularAtomataMapGenerator:
         Initializer
 
         ### Parameters
+
         `bounds` : `Rect`
             A rectangle representing the bounds of the cellular atomaton
         `config` : `Optional[Configuration]`
@@ -46,7 +49,7 @@ class CellularAtomataMapGenerator:
         '''
         self.bounds = bounds
         self.configuration = config if config else CellularAtomataMapGenerator.Configuration()
-        self.tiles = make_grid(bounds.size)
+        self.tiles = np.full((bounds.size.height, bounds.size.width), fill_value=Empty, dtype=tile_datatype, order='C')
 
     def generate(self):
         '''
@@ -59,14 +62,23 @@ class CellularAtomataMapGenerator:
         self._fill()
         self._run_atomaton()
 
+    def apply(self, map: 'Map'):
+        origin = self.bounds.origin
+        for y, x in np.ndindex(self.tiles.shape):
+            map_pt = origin + Vector(x, y)
+            tile = self.tiles[y, x]
+            if tile == Floor:
+                map.tiles[map_pt.numpy_index] = tile
+
     def _fill(self):
         fill_percentage = self.configuration.fill_percentage
 
         for y, x in np.ndindex(self.tiles.shape):
-            self.tiles[x, y] = Floor if random.random() < fill_percentage else Wall
+            self.tiles[y, x] = Floor if random.random() < fill_percentage else Empty
 
     def _run_atomaton(self):
-        alternate_tiles = make_grid(self.bounds.size)
+        alternate_tiles = np.full((self.bounds.size.height, self.bounds.size.width),
+                                  fill_value=Empty, dtype=tile_datatype, order='C')
 
         number_of_rounds = self.configuration.number_of_rounds
         if number_of_rounds < 1:
@@ -100,21 +112,22 @@ class CellularAtomataMapGenerator:
             # Start with 1 because the point is its own neighbor
             number_of_neighbors = 1
             for neighbor in pt.neighbors:
-                if neighbor not in self.bounds:
-                    continue
+                try:
+                    if from_tiles[neighbor.y, neighbor.x] == Floor:
+                        number_of_neighbors += 1
+                except IndexError:
+                    pass
 
-                if from_tiles[neighbor.x, neighbor.y] == Floor:
-                    number_of_neighbors += 1
-
-            tile_is_alive = from_tiles[pt.x, pt.y] == Floor
+            idx = (pt.y, pt.x)
+            tile_is_alive = from_tiles[idx] == Floor
             if tile_is_alive and number_of_neighbors >= 5:
                 # Survival
-                to_tiles[pt.x, pt.y] = Floor
+                to_tiles[idx] = Floor
             elif not tile_is_alive and number_of_neighbors >= 5:
                 # Birth
-                to_tiles[pt.x, pt.y] = Floor
+                to_tiles[idx] = Floor
             else:
-                to_tiles[pt.x, pt.y] = Wall
+                to_tiles[idx] = Empty
 
     def __str__(self):
         return '\n'.join(''.join(chr(i['light']['ch']) for i in row) for row in self.tiles)

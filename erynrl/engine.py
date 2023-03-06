@@ -18,7 +18,7 @@ from .geometry import Point, Size
 from .interface import Interface
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
-from .map.generator.room import RandomRectRoomGenerator
+from .map.generator.room import RoomGenerator, RandomRectMethod, RectangularRoomMethod
 from .map.generator.corridor import ElbowCorridorGenerator
 from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
@@ -58,7 +58,14 @@ class Engine:
 
         map_size = config.map_size
         map_generator = RoomsAndCorridorsGenerator(
-            RandomRectRoomGenerator(size=map_size),
+            RoomGenerator(
+                size=map_size,
+                config=RoomGenerator.Configuration(
+                    rect_method=RandomRectMethod(
+                        size=map_size,
+                        config=RandomRectMethod.Configuration(number_of_rooms=4)),
+                    room_method=RectangularRoomMethod())
+            ),
             ElbowCorridorGenerator())
         self.map = Map(config, map_generator)
 

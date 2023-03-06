@@ -1,8 +1,9 @@
 # Eryn Wells <eryn@erynwells.me>
 
+import math
 import random
 from dataclasses import dataclass
-from typing import List, Optional, TYPE_CHECKING
+from typing import Iterable, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 import tcod
 
@@ -20,13 +21,12 @@ class RoomGenerator:
 
     @dataclass
     class Configuration:
-        number_of_rooms: int = 30
-        minimum_room_size: Size = Size(7, 7)
-        maximum_room_size: Size = Size(20, 20)
+        rect_method: 'RectMethod'
+        room_method: 'RoomMethod'
 
-    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
+    def __init__(self, *, size: Size, config: Configuration):
         self.size = size
-        self.configuration = config if config else RoomGenerator.Configuration()
+        self.configuration = config
 
         self.rooms: List[Room] = []
 
@@ -35,26 +35,19 @@ class RoomGenerator:
 
     def generate(self):
         '''Generate rooms and stairs'''
-        did_generate_rooms = self._generate()
+        rect_method = self.configuration.rect_method
+        room_method = self.configuration.room_method
 
-        if not did_generate_rooms:
+        for rect in rect_method.generate():
+            room = room_method.room_in_rect(rect)
+            if not room:
+                break
+            self.rooms.append(room)
+
+        if len(self.rooms) == 0:
             return
 
         self._generate_stairs()
-
-    def _generate(self) -> bool:
-        '''
-        Generate a list of rooms.
-
-        Subclasses should implement this and fill in their specific map
-        generation algorithm.
-
-        Returns
-        -------
-        np.ndarray
-            A two-dimensional array of tiles. Dimensions should match the given size.
-        '''
-        raise NotImplementedError()
 
     # pylint: disable=redefined-builtin
     def apply(self, map: 'Map'):
@@ -105,20 +98,124 @@ class RoomGenerator:
             tiles[pt.numpy_index] = StairsDown
 
 
-class OneBigRoomGenerator(RoomGenerator):
-    '''Generates one big room in the center of the map.'''
+class RectMethod:
+    '''An abstract class defining a method for generating rooms.'''
 
-    def _generate(self) -> bool:
-        if self.rooms:
-            return True
+    def __init__(self, *, size: Size):
+        self.size = size
 
-        origin = Point(self.size.width // 4, self.size.height // 4)
-        size = Size(self.size.width // 2, self.size.height // 2)
-        room = RectangularRoom(Rect(origin, size))
+    def generate(self) -> Iterator[Rect]:
+        '''Generate rects to place rooms in until there are no more.'''
+        raise NotImplementedError()
 
-        self.rooms.append(room)
 
-        return True
+class OneBigRoomRectMethod(RectMethod):
+    '''
+    A room generator method that yields one large rectangle centered in the
+    bounds defined by the zero origin and `self.size`.
+    '''
+
+    @dataclass
+    class Configuration:
+        '''
+        Configuration for a OneBigRoom room generator method.
+
+        ### Attributes
+
+        width_percentage : float
+            The percentage of overall width to make the room
+        height_percentage : float
+            The percentage of overall height to make the room
+        '''
+        width_percentage: float = 0.5
+        height_percentage: float = 0.5
+
+    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
+        super().__init__(size=size)
+        self.configuration = config or self.__class__.Configuration()
+
+    def generate(self) -> Iterator[Rect]:
+        width = self.size.width
+        height = self.size.height
+
+        size = Size(math.floor(width * self.configuration.width_percentage),
+                    math.floor(height * self.configuration.height_percentage))
+        origin = Point((width - size.width) // 2, (height - size.height) // 2)
+
+        yield Rect(origin, size)
+
+
+class RandomRectMethod(RectMethod):
+    NUMBER_OF_ATTEMPTS_PER_RECT = 30
+
+    @dataclass
+    class Configuration:
+        number_of_rooms: int = 30
+        minimum_room_size: Size = Size(7, 7)
+        maximum_room_size: Size = Size(20, 20)
+
+    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
+        super().__init__(size=size)
+        self.configuration = config or self.__class__.Configuration()
+        self._rects: List[Rect] = []
+
+    def generate(self) -> Iterator[Rect]:
+        minimum_room_size = self.configuration.minimum_room_size
+        maximum_room_size = self.configuration.maximum_room_size
+
+        width_range = (minimum_room_size.width, maximum_room_size.width)
+        height_range = (minimum_room_size.height, maximum_room_size.height)
+
+        while len(self._rects) < self.configuration.number_of_rooms:
+            for _ in range(self.__class__.NUMBER_OF_ATTEMPTS_PER_RECT):
+                size = Size(random.randint(*width_range), random.randint(*height_range))
+                origin = Point(random.randint(0, self.size.width - size.width),
+                               random.randint(0, self.size.height - size.height))
+                candidate_rect = Rect(origin, size)
+
+                overlaps_any_existing_room = any(candidate_rect.intersects(r) for r in self._rects)
+                if not overlaps_any_existing_room:
+                    break
+            else:
+                return
+
+            self._rects.append(candidate_rect)
+            yield candidate_rect
+
+
+class RoomMethod:
+    '''An abstract class defining a method for generating rooms.'''
+
+    def room_in_rect(self, rect: Rect) -> Optional[Room]:
+        '''Create a Room inside the given Rect.'''
+        raise NotImplementedError()
+
+
+class RectangularRoomMethod(RoomMethod):
+    def room_in_rect(self, rect: Rect) -> Optional[Room]:
+        return RectangularRoom(rect)
+
+
+class OrRoomMethod(RoomMethod):
+    '''
+    A room generator method that picks between several RoomMethods at random
+    based on a set of probabilities.
+    '''
+
+    def __init__(self, methods: Iterable[Tuple[float, RoomMethod]]):
+        assert sum(m[0] for m in methods) == 1.0
+        self.methods = methods
+
+    def room_in_rect(self, rect: Rect) -> Optional[Room]:
+        factor = random.random()
+
+        threshold = 0
+        for method in self.methods:
+            threshold += method[0]
+            if factor <= threshold:
+                return method[1].room_in_rect(rect)
+
+        return None
 
 
 class RandomRectRoomGenerator(RoomGenerator):

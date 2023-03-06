@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Iterator, Optional, overload, Tuple
 
 
-@dataclass(frozen=True)
+@dataclass
 class Point:
     '''A two-dimensional point, with coordinates in X and Y axes'''
 
@@ -93,7 +93,7 @@ class Point:
         return f'(x:{self.x}, y:{self.y})'
 
 
-@dataclass(frozen=True)
+@dataclass
 class Vector:
     '''A two-dimensional vector, representing change in position in X and Y axes'''
 
@@ -141,7 +141,7 @@ class Direction:
         yield Direction.NorthWest
 
 
-@dataclass(frozen=True)
+@dataclass
 class Size:
     '''A two-dimensional size, representing size in X (width) and Y (height) axes'''
 
@@ -161,7 +161,7 @@ class Size:
         return f'(w:{self.width}, h:{self.height})'
 
 
-@dataclass(frozen=True)
+@dataclass
 class Rect:
     '''A two-dimensional rectangle, defined by an origin point and size'''
 

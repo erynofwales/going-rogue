@@ -18,7 +18,8 @@ from .geometry import Point, Size
 from .interface import Interface
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
-from .map.generator.room import RoomGenerator, RandomRectMethod, RectangularRoomMethod
+from .map.generator.cellular_atomata import CellularAtomataMapGenerator
+from .map.generator.room import BSPRectMethod, CellularAtomatonRoomMethod, OrRoomMethod, RoomGenerator, RandomRectMethod, RectangularRoomMethod
 from .map.generator.corridor import ElbowCorridorGenerator
 from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
@@ -61,10 +62,16 @@ class Engine:
             RoomGenerator(
                 size=map_size,
                 config=RoomGenerator.Configuration(
-                    rect_method=RandomRectMethod(
+                    rect_method=BSPRectMethod(
                         size=map_size,
-                        config=RandomRectMethod.Configuration(number_of_rooms=4)),
-                    room_method=RectangularRoomMethod())
+                        config=BSPRectMethod.Configuration(number_of_rooms=30)),
+                    room_method=OrRoomMethod(
+                        methods=[
+                            (0.2, CellularAtomatonRoomMethod(CellularAtomataMapGenerator.Configuration())),
+                            (0.8, RectangularRoomMethod())
+                        ]
+                    )
+                )
             ),
             ElbowCorridorGenerator())
         self.map = Map(config, map_generator)

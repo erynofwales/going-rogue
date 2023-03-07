@@ -185,6 +185,109 @@ class RandomRectMethod(RectMethod):
             yield candidate_rect
 
 
+class BSPRectMethod(RectMethod):
+    @dataclass
+    class Configuration:
+        '''
+        Configuration for the binary space partitioning (BSP) Rect method.
+
+        ### Attributes
+
+        number_of_rooms : int
+            The maximum number of rooms to produce
+        maximum_room_size : Size
+            The maximum size of any room
+        minimum_room_size : Size
+            The minimum size of any room
+        room_size_ratio : Tuple[float, float]
+            A pair of floats indicating the maximum proportion the sides of a
+            BSP node can have to each other.
+
+            The first value is the horizontal ratio. BSP nodes will never have a
+            horizontal size (width) bigger than `room_size_ratio[0]` times the
+            vertical size.
+
+            The second value is the vertical ratio. BSP nodes will never have a
+            vertical size (height) larger than `room_size_ratio[1]` times the
+            horizontal size.
+
+            The closer these values are to 1.0, the more square the BSP nodes
+            will be.
+        '''
+        number_of_rooms: int = 30
+        minimum_room_size: Size = Size(7, 7)
+        maximum_room_size: Size = Size(20, 20)
+        room_size_ratio: Tuple[float, float] = (1.1, 1.1)
+
+    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
+        super().__init__(size=size)
+        self.configuration = config or self.__class__.Configuration()
+
+    def generate(self) -> Iterator[Rect]:
+        nodes_with_rooms = set()
+
+        minimum_room_size = self.configuration.minimum_room_size
+        maximum_room_size = self.configuration.maximum_room_size
+
+        # Recursively divide the map into squares of various sizes to place rooms in.
+        bsp = tcod.bsp.BSP(x=0, y=0, width=self.size.width, height=self.size.height)
+
+        # Add 2 to the minimum width and height to account for walls
+        bsp.split_recursive(
+            depth=6,
+            min_width=minimum_room_size.width,
+            min_height=minimum_room_size.height,
+            max_horizontal_ratio=self.configuration.room_size_ratio[0],
+            max_vertical_ratio=self.configuration.room_size_ratio[1])
+
+        log.MAP_BSP.info('Generating room rects via BSP')
+
+        # Visit all nodes in a level before visiting any of their children
+        for bsp_node in bsp.level_order():
+            node_width = bsp_node.w
+            node_height = bsp_node.h
+
+            if node_width > maximum_room_size.width or node_height > maximum_room_size.height:
+                log.MAP_BSP.debug('Node with size (%s, %s) exceeds maximum size %s',
+                                  node_width, node_height, maximum_room_size)
+                continue
+
+            if len(nodes_with_rooms) >= self.configuration.number_of_rooms:
+                # Made as many rooms as we're allowed. We're done.
+                log.MAP_BSP.debug("Generated enough rooms (more than %d); we're done",
+                                  self.configuration.number_of_rooms)
+                return
+
+            if any(node in nodes_with_rooms for node in self.__all_parents_of_node(bsp_node)):
+                # Already made a room for one of this node's parents
+                log.MAP_BSP.debug('Already made a room for parent of %s', bsp_node)
+                continue
+
+            try:
+                probability_of_room = max(
+                    1.0 / (node_width - minimum_room_size.width),
+                    1.0 / (node_height - minimum_room_size.height))
+            except ZeroDivisionError:
+                probability_of_room = 1.0
+
+            log.MAP_BSP.info('Probability of generating room for %s: %f', bsp_node, probability_of_room)
+
+            if random.random() <= probability_of_room:
+                log.MAP_BSP.info('Yielding room for node %s', bsp_node)
+                nodes_with_rooms.add(bsp_node)
+                yield self.__rect_from_bsp_node(bsp_node)
+
+        log.MAP_BSP.info('Finished BSP room rect generation, yielded %d rooms', len(nodes_with_rooms))
+
+    def __rect_from_bsp_node(self, bsp_node: tcod.bsp.BSP) -> Rect:
+        return Rect.from_raw_values(bsp_node.x, bsp_node.y, bsp_node.w, bsp_node.h)
+
+    def __all_parents_of_node(self, node: tcod.bsp.BSP | None) -> Iterable[tcod.bsp.BSP]:
+        while node:
+            yield node
+            node = node.parent
+
+
 class RoomMethod:
     '''An abstract class defining a method for generating rooms.'''
 
@@ -292,94 +395,3 @@ class RandomRectRoomGenerator(RoomGenerator):
         return True
 
 
-class BSPRoomGenerator(RoomGenerator):
-    '''Generate a rooms-and-corridors style map with BSP.'''
-
-    def __init__(self, *, size: Size, config: Optional[RoomGenerator.Configuration] = None):
-        super().__init__(size=size, config=config)
-        self.rng: tcod.random.Random = tcod.random.Random()
-
-    def _generate(self) -> bool:
-        if self.rooms:
-            return True
-
-        minimum_room_size = self.configuration.minimum_room_size
-        maximum_room_size = self.configuration.maximum_room_size
-
-        # Recursively divide the map into squares of various sizes to place rooms in.
-        bsp = tcod.bsp.BSP(x=0, y=0, width=self.size.width, height=self.size.height)
-
-        # Add 2 to the minimum width and height to account for walls
-        bsp.split_recursive(
-            depth=4,
-            min_width=minimum_room_size.width,
-            min_height=minimum_room_size.height,
-            max_horizontal_ratio=1.1,
-            max_vertical_ratio=1.1)
-
-        # Generate the rooms
-        rooms: List[Room] = []
-
-        room_attrname = f'{__class__.__name__}.room'
-
-        for node in bsp.post_order():
-            node_bounds = self.__rect_from_bsp_node(node)
-
-            if node.children:
-                continue
-
-            log.MAP.debug('%s (room) %s', node_bounds, node)
-
-            # Generate a room size between minimum_room_size and maximum_room_size. The minimum value is
-            # straight-forward, but the maximum value needs to be clamped between minimum_room_size and the size of
-            # the node.
-            width_range = (
-                minimum_room_size.width,
-                min(maximum_room_size.width, max(
-                    minimum_room_size.width, node.width - 2))
-            )
-            height_range = (
-                minimum_room_size.height,
-                min(maximum_room_size.height, max(
-                    minimum_room_size.height, node.height - 2))
-            )
-
-            log.MAP.debug('|-> min room size %s', minimum_room_size)
-            log.MAP.debug('|-> max room size %s', maximum_room_size)
-            log.MAP.debug('|-> node size %s x %s', node.width, node.height)
-            log.MAP.debug('|-> width range %s', width_range)
-            log.MAP.debug('|-> height range %s', width_range)
-
-            size = Size(self.rng.randint(*width_range),
-                        self.rng.randint(*height_range))
-            origin = Point(node.x + self.rng.randint(1, max(1, node.width - size.width - 2)),
-                           node.y + self.rng.randint(1, max(1, node.height - size.height - 2)))
-            bounds = Rect(origin, size)
-
-            log.MAP.debug('`-> %s', bounds)
-
-            room = RectangularRoom(bounds)
-            setattr(node, room_attrname, room)
-            rooms.append(room)
-
-            if not hasattr(node.parent, room_attrname):
-                setattr(node.parent, room_attrname, room)
-            elif random.random() < 0.5:
-                setattr(node.parent, room_attrname, room)
-
-            # Pass up a random child room so that parent nodes can connect subtrees to each other.
-            parent = node.parent
-            if parent:
-                node_room = getattr(node, room_attrname)
-                if not hasattr(node.parent, room_attrname):
-                    setattr(node.parent, room_attrname, node_room)
-                elif random.random() < 0.5:
-                    setattr(node.parent, room_attrname, node_room)
-
-        self.rooms = rooms
-
-        return True
-
-    def __rect_from_bsp_node(self, node: tcod.bsp.BSP) -> Rect:
-        '''Create a Rect from the given BSP node object'''
-        return Rect(Point(node.x, node.y), Size(node.width, node.height))

@@ -28,6 +28,7 @@ EVENTS = logging.getLogger(_log_name('events'))
 UI = logging.getLogger(_log_name('ui'))
 
 MAP = logging.getLogger(_log_name('map'))
+MAP_BSP = logging.getLogger(_log_name('map', 'bsp'))
 MAP_CELL_ATOM = logging.getLogger(_log_name('map', 'cellular'))
 
 

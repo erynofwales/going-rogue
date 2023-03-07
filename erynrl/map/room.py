@@ -115,3 +115,6 @@ class FreeformRoom(Room):
         for y, x in np.ndindex(self.tiles.shape):
             if self.tiles[y, x]['walkable']:
                 yield Point(x, y) + room_origin_vector
+
+    def __str__(self):
+        return '\n'.join(''.join(chr(i['light']['ch']) for i in row) for row in self.tiles)

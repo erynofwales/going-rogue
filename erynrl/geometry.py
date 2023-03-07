@@ -163,10 +163,17 @@ class Size:
 
 @dataclass
 class Rect:
-    '''A two-dimensional rectangle, defined by an origin point and size'''
+    '''
+    A two-dimensional rectangle defined by an origin point and size
+    '''
 
     origin: Point
     size: Size
+
+    @staticmethod
+    def from_raw_values(x: int, y: int, width: int, height: int):
+        '''Create a rect from raw (unpacked from their struct) values'''
+        return Rect(Point(x, y), Size(width, height))
 
     @property
     def min_x(self) -> int:

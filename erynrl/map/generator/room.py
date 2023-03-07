@@ -360,38 +360,3 @@ class OrRoomMethod(RoomMethod):
                 return method[1].room_in_rect(rect)
 
         return None
-
-
-class RandomRectRoomGenerator(RoomGenerator):
-    '''Generate rooms by repeatedly attempting to place rects of random size across the map.'''
-
-    NUMBER_OF_ATTEMPTS_PER_ROOM = 30
-
-    def _generate(self) -> bool:
-        number_of_attempts = 0
-
-        minimum_room_size = self.configuration.minimum_room_size
-        maximum_room_size = self.configuration.maximum_room_size
-
-        width_range = (minimum_room_size.width, maximum_room_size.width)
-        height_range = (minimum_room_size.height, maximum_room_size.height)
-
-        while len(self.rooms) < self.configuration.number_of_rooms:
-            size = Size(random.randint(*width_range), random.randint(*height_range))
-            origin = Point(random.randint(0, self.size.width - size.width),
-                           random.randint(0, self.size.height - size.height))
-            candidate_room_rect = Rect(origin, size)
-
-            overlaps_any_existing_room = any(candidate_room_rect.intersects(room.bounds) for room in self.rooms)
-            if not overlaps_any_existing_room:
-                self.rooms.append(RectangularRoom(candidate_room_rect))
-                number_of_attempts = 0
-                continue
-
-            number_of_attempts += 1
-            if number_of_attempts > RandomRectRoomGenerator.NUMBER_OF_ATTEMPTS_PER_ROOM:
-                break
-
-        return True
-
-

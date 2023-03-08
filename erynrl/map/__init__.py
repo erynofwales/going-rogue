@@ -9,7 +9,6 @@ import random
 from typing import Iterable
 
 import numpy as np
-import numpy.typing as npt
 import tcod
 
 from ..configuration import Configuration
@@ -82,25 +81,25 @@ class Map:
                 self.tiles.shape) if self.tiles[x, y]['walkable']]
         return random.choice(self.__walkable_points)
 
-    def tile_is_in_bounds(self, point: Point) -> bool:
+    def point_is_in_bounds(self, point: Point) -> bool:
         '''Return True if the given point is inside the bounds of the map'''
         return 0 <= point.x < self.size.width and 0 <= point.y < self.size.height
 
-    def tile_is_walkable(self, point: Point) -> bool:
+    def point_is_walkable(self, point: Point) -> bool:
         '''Return True if the tile at the given point is walkable'''
-        if not self.tile_is_in_bounds(point):
+        if not self.point_is_in_bounds(point):
             raise ValueError(f'Point {point!s} is not in bounds')
         return self.tiles[point.numpy_index]['walkable']
 
     def point_is_visible(self, point: Point) -> bool:
         '''Return True if the point is visible to the player'''
-        if not self.tile_is_in_bounds(point):
+        if not self.point_is_in_bounds(point):
             raise ValueError(f'Point {point!s} is not in bounds')
         return self.visible[point.numpy_index]
 
     def point_is_explored(self, point: Point) -> bool:
         '''Return True if the tile at the given point has been explored by the player'''
-        if not self.tile_is_in_bounds(point):
+        if not self.point_is_in_bounds(point):
             raise ValueError(f'Point {point!s} is not in bounds')
         return self.explored[point.numpy_index]
 
@@ -109,7 +108,7 @@ class Map:
         self.highlighted.fill(False)
 
         for pt in points:
-            self.highlighted[pt.x, pt.y] = True
+            self.highlighted[pt.numpy_index] = True
 
     def find_walkable_path_from_point_to_point(self, point_a: Point, point_b: Point) -> Iterable[Point]:
         '''

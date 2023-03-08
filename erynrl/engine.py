@@ -17,13 +17,13 @@ from .events import EngineEventHandler, GameOverEventHandler
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
 from .map.generator.cellular_atomata import CellularAtomataMapGenerator
+from .map.generator.corridor import ElbowCorridorGenerator
 from .map.generator.room import (
     BSPRectMethod,
     CellularAtomatonRoomMethod,
     OrRoomMethod,
     RoomGenerator,
     RectangularRoomMethod)
-from .map.generator.corridor import ElbowCorridorGenerator
 from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
 

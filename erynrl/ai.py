@@ -78,10 +78,10 @@ class HostileEnemy(AI):
                     new_position = self.entity.position + direction
                     overlaps_existing_entity = any(new_position == ent.position for ent in engine.entities)
                     try:
-                        tile_is_walkable = engine.map.tile_is_walkable(new_position)
+                        point_is_walkable = engine.map.point_is_walkable(new_position)
                     except ValueError:
-                        tile_is_walkable = False
-                    if not overlaps_existing_entity and tile_is_walkable:
+                        point_is_walkable = False
+                    if not overlaps_existing_entity and point_is_walkable:
                         if engine.map.visible[tuple(self.entity.position)]:
                             log.AI.info('Hero is NOT visible to %s, bumping %s randomly', self.entity, direction)
                         action = BumpAction(self.entity, direction)

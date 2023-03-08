@@ -71,8 +71,8 @@ class BumpAction(MoveAction):
     def perform(self, engine: 'Engine') -> ActionResult:
         new_position = self.actor.position + self.direction
 
-        position_is_in_bounds = engine.map.tile_is_in_bounds(new_position)
-        position_is_walkable = engine.map.tile_is_walkable(new_position)
+        position_is_in_bounds = engine.map.point_is_in_bounds(new_position)
+        position_is_walkable = engine.map.point_is_walkable(new_position)
 
         for ent in engine.entities:
             if new_position != ent.position or not ent.blocks_movement:

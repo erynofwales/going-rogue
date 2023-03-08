@@ -63,13 +63,13 @@
             "propagate": false
         },
         "erynrl.ui": {
-            "level": "DEBUG",
+            "level": "WARN",
             "handlers": [
                 "console"
             ]
         },
         "erynrl.visible": {
-            "level": "DEBUG",
+            "level": "WARN",
             "handlers": [
                 "console"
             ]

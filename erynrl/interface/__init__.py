@@ -4,15 +4,18 @@
 The game's graphical user interface
 '''
 
-from typing import List
+from typing import NoReturn
 
+from tcod import event as tev
 from tcod.console import Console
+from tcod.context import Context
 
 from .color import HealthBar
+from .events import InterfaceEventHandler
 from .percentage_bar import PercentageBar
 from .window import Window, MapWindow
+from ..engine import Engine
 from ..geometry import Point, Rect, Size
-from ..map import Map
 from ..messages import MessageLog
 from ..object import Entity, Hero
 
@@ -20,25 +23,59 @@ from ..object import Entity, Hero
 class Interface:
     '''The game's user interface'''
 
-    # pylint: disable=redefined-builtin
-    def __init__(self, size: Size, map: Map, message_log: MessageLog):
-        self.map_window = MapWindow(Rect(Point(0, 0), Size(size.width, size.height - 5)), map)
-        self.info_window = InfoWindow(Rect(Point(0, size.height - 5), Size(28, 5)))
-        self.message_window = MessageLogWindow(Rect(Point(28, size.height - 5), Size(size.width - 28, 5)), message_log)
+    def __init__(self, size: Size, engine: Engine):
+        self.engine = engine
 
-    def update(self, turn_count: int, hero: Hero, entities: List[Entity]):
+        self.console = Console(*size.numpy_shape, order='F')
+
+        self.map_window = MapWindow(
+            Rect.from_raw_values(0, 0, size.width, size.height - 5),
+            engine.map)
+        self.info_window = InfoWindow(
+            Rect.from_raw_values(0, size.height - 5, 28, 5))
+        self.message_window = MessageLogWindow(
+            Rect.from_raw_values(28, size.height - 5, size.width - 28, 5),
+            engine.message_log)
+
+        self.event_handler = InterfaceEventHandler(self)
+
+    def update(self):
         '''Update game state that the interface needs to render'''
-        self.info_window.turn_count = turn_count
+        self.info_window.turn_count = self.engine.current_turn
+
+        hero = self.engine.hero
         self.info_window.update_hero(hero)
-
         self.map_window.update_drawable_map_bounds(hero)
-        self.map_window.entities = entities
 
-    def draw(self, console: Console):
+        sorted_entities = sorted(self.engine.entities, key=lambda e: e.render_order.value)
+        self.map_window.entities = sorted_entities
+
+    def draw(self):
         '''Draw the UI to the console'''
-        self.map_window.draw(console)
-        self.info_window.draw(console)
-        self.message_window.draw(console)
+        self.map_window.draw(self.console)
+        self.info_window.draw(self.console)
+        self.message_window.draw(self.console)
+
+    def run_event_loop(self, context: Context) -> NoReturn:
+        '''Run the event loop forever. This method never returns.'''
+        while True:
+            self.update()
+
+            self.console.clear()
+            self.draw()
+            context.present(self.console)
+
+            for event in tev.wait():
+                did_handle = self.event_handler.dispatch(event)
+                if did_handle:
+                    continue
+
+                action = self.engine.event_handler.dispatch(event)
+                if not action:
+                    # The engine didn't handle the event, so just drop it.
+                    continue
+
+                self.engine.process_input_action(action)
 
 
 class InfoWindow(Window):

@@ -3,7 +3,7 @@
 '''Defines the core game engine.'''
 
 import random
-from typing import TYPE_CHECKING, List, MutableSet, NoReturn, Optional
+from typing import TYPE_CHECKING, List, MutableSet, Optional
 
 import tcod
 
@@ -13,19 +13,20 @@ from .actions.action import Action, ActionWithActor
 from .actions.result import ActionResult
 from .ai import HostileEnemy
 from .configuration import Configuration
-from .events import GameOverEventHandler, MainGameEventHandler
-from .geometry import Point, Size
-from .interface import Interface
+from .events import EngineEventHandler, GameOverEventHandler
+from .geometry import Point
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
 from .map.generator.cellular_atomata import CellularAtomataMapGenerator
-from .map.generator.room import BSPRectMethod, CellularAtomatonRoomMethod, OrRoomMethod, RoomGenerator, RandomRectMethod, RectangularRoomMethod
+from .map.generator.room import (
+    BSPRectMethod,
+    CellularAtomatonRoomMethod,
+    OrRoomMethod,
+    RoomGenerator,
+    RectangularRoomMethod)
 from .map.generator.corridor import ElbowCorridorGenerator
 from .messages import MessageLog
 from .object import Actor, Entity, Hero, Monster
-
-if TYPE_CHECKING:
-    from .events import EventHandler
 
 
 class Engine:
@@ -76,7 +77,7 @@ class Engine:
             ElbowCorridorGenerator())
         self.map = Map(config, map_generator)
 
-        self.event_handler: 'EventHandler' = MainGameEventHandler(self)
+        self.event_handler = EngineEventHandler(self)
 
         self.__current_mouse_point: Optional[Point] = None
         self.__mouse_path_points: Optional[List[Point]] = None
@@ -112,36 +113,15 @@ class Engine:
 
         self.update_field_of_view()
 
-        # Interface elements
-        self.interface = Interface(Size(80, 50), self.map, self.message_log)
         self.message_log.add_message('Greetings adventurer!', fg=(127, 127, 255), stack=False)
-
-    def print_to_console(self, console):
-        '''Print the whole game to the given console.'''
-        self.map.highlight_points(self.__mouse_path_points or [])
-
-        sorted_entities = sorted(self.entities, key=lambda e: e.render_order.value)
-        self.interface.update(self.current_turn, self.hero, sorted_entities)
-
-        self.interface.draw(console)
-
-    def run_event_loop(self, context: tcod.context.Context, console: tcod.Console) -> NoReturn:
-        '''Run the event loop forever. This method never returns.'''
-        while True:
-            console.clear()
-            self.print_to_console(console)
-            context.present(console)
-
-            self.begin_turn()
-            self.event_handler.handle_events(context)
-            self.finish_turn()
 
     def process_input_action(self, action: Action):
         '''Process an Action from player input'''
-
         if not isinstance(action, ActionWithActor):
             action.perform(self)
             return
+
+        self.begin_turn()
 
         log.ACTIONS_TREE.info('Processing Hero Actions')
         log.ACTIONS_TREE.info('|-> %s', action.actor)
@@ -159,6 +139,8 @@ class Engine:
         self.did_successfully_process_actions_for_turn = True
         self.process_entity_actions()
         self.update_field_of_view()
+
+        self.finish_turn()
 
     def process_entity_actions(self):
         '''Run AI for entities that have them, and process actions from those AIs'''

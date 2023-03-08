@@ -9,6 +9,7 @@ from . import log
 from .configuration import Configuration, FontConfiguration, FontConfigurationError
 from .engine import Engine
 from .geometry import Size
+from .interface import Interface
 
 
 def parse_args(argv, *a, **kw):
@@ -45,15 +46,15 @@ def main(argv):
 
     configuration = Configuration(
         console_font_configuration=font_config,
-        map_size=Size(80, 24),
+        map_size=Size(80, 40),
         sandbox=args.sandbox)
 
     engine = Engine(configuration)
-
+    interface = Interface(configuration.console_size, engine)
     tileset = configuration.console_font_configuration.tileset
-    console = tcod.Console(*configuration.console_size.numpy_shape, order='F')
-    with tcod.context.new(columns=console.width, rows=console.height, tileset=tileset) as context:
-        engine.run_event_loop(context, console)
+
+    with tcod.context.new(columns=interface.console.width, rows=interface.console.height, tileset=tileset) as context:
+        interface.run_event_loop(context)
 
     return 0
 

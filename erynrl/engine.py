@@ -3,7 +3,7 @@
 '''Defines the core game engine.'''
 
 import random
-from typing import TYPE_CHECKING, List, MutableSet, Optional
+from typing import MutableSet
 
 import tcod
 
@@ -14,7 +14,6 @@ from .actions.result import ActionResult
 from .ai import HostileEnemy
 from .configuration import Configuration
 from .events import EngineEventHandler, GameOverEventHandler
-from .geometry import Point
 from .map import Map
 from .map.generator import RoomsAndCorridorsGenerator
 from .map.generator.cellular_atomata import CellularAtomataMapGenerator
@@ -79,9 +78,6 @@ class Engine:
 
         self.event_handler = EngineEventHandler(self)
 
-        self.__current_mouse_point: Optional[Point] = None
-        self.__mouse_path_points: Optional[List[Point]] = None
-
         self.entities: MutableSet[Entity] = set()
 
         try:
@@ -125,9 +121,6 @@ class Engine:
 
         log.ACTIONS_TREE.info('Processing Hero Actions')
         log.ACTIONS_TREE.info('|-> %s', action.actor)
-
-        # Clear the mouse path highlight before handling actions.
-        self.__mouse_path_points = None
 
         result = self._perform_action_until_done(action)
 
@@ -216,34 +209,6 @@ class Engine:
 
         # Add visible tiles to the explored grid
         self.map.explored |= self.map.visible
-
-    def update_mouse_point(self, mouse_point: Optional[Point]):
-        if mouse_point == self.__current_mouse_point:
-            return
-
-        should_render_mouse_path = (
-            mouse_point
-            and self.map.tile_is_in_bounds(mouse_point)
-            and self.map.tile_is_walkable(mouse_point))
-
-        if not should_render_mouse_path:
-            self.__current_mouse_point = None
-            self.__mouse_path_points = None
-            return
-
-        self.__current_mouse_point = mouse_point
-
-        path_from_hero_to_mouse_point = tcod.los.bresenham(tuple(self.hero.position), tuple(self.__current_mouse_point))
-        mouse_path_points = [Point(x, y) for x, y in path_from_hero_to_mouse_point.tolist()]
-
-        all_mouse_path_points_are_walkable = all(
-            self.map.tile_is_walkable(pt) and self.map.point_is_explored(pt) for pt in mouse_path_points)
-        if not all_mouse_path_points_are_walkable:
-            self.__current_mouse_point = None
-            self.__mouse_path_points = None
-            return
-
-        self.__mouse_path_points = mouse_path_points
 
     def begin_turn(self) -> None:
         '''Begin the current turn'''

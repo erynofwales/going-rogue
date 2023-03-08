@@ -1,23 +1,25 @@
 # Eryn Wells <eryn@erynwells.me>
 
-from typing import Optional
+from typing import Generic, Optional, TypeVar
 
 from tcod import event as tev
 from tcod.console import Console
 
 from ...geometry import Point, Rect, Vector
 
+WindowT = TypeVar('WindowT', bound='Window')
+
 
 class Window:
     '''A user interface window. It can be framed and it can handle events.'''
 
-    class EventHandler(tev.EventDispatch[bool]):
+    class EventHandler(tev.EventDispatch[bool], Generic[WindowT]):
         '''
         Handles events for a Window. Event dispatch methods return True if the event
         was handled and no further action is needed.
         '''
 
-        def __init__(self, window: 'Window'):
+        def __init__(self, window: WindowT):
             super().__init__()
             self.window = window
 

@@ -111,16 +111,13 @@ class Map:
         for pt in points:
             self.highlighted[pt.x, pt.y] = True
 
-    def print_to_console(self, console: tcod.Console, bounds: Rect) -> None:
-        '''Render the map to the console.'''
-        size = self.size
-
-        # If a tile is in the visible array, draw it with the "light" color. If it's not, but it's in the explored
-        # array, draw it with the "dark" color. Otherwise, draw it as Empty.
-        console.tiles_rgb[0:size.width, 0:size.height] = np.select(
-            condlist=[self.highlighted, self.visible, self.explored],
-            choicelist=[self.tiles['highlighted'], self.tiles['light'], self.tiles['dark']],
-            default=Shroud)
+    def find_walkable_path_from_point_to_point(self, point_a: Point, point_b: Point) -> Iterable[Point]:
+        '''
+        Find a path between point A and point B using tcod's A* implementation.
+        '''
+        a_star = tcod.path.AStar(self.tiles['walkable'])
+        path = a_star.get_path(point_a.x, point_a.y, point_b.x, point_b.y)
+        return map(lambda t: Point(t[0], t[1]), path)
 
     def __str__(self):
         string = ''

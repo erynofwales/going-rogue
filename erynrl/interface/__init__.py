@@ -28,7 +28,8 @@ class Interface:
 
         self.map_window = MapWindow(
             Rect.from_raw_values(0, 0, size.width, size.height - 5),
-            engine.map)
+            engine.map,
+            engine.hero)
         self.info_window = InfoWindow(
             Rect.from_raw_values(0, size.height - 5, 28, 5))
         self.message_window = MessageLogWindow(
@@ -43,7 +44,7 @@ class Interface:
 
         hero = self.engine.hero
         self.info_window.update_hero(hero)
-        self.map_window.update_drawable_map_bounds(hero)
+        self.map_window.update_drawable_map_bounds()
 
         sorted_entities = sorted(self.engine.entities, key=lambda e: e.render_order.value)
         self.map_window.entities = sorted_entities
@@ -64,6 +65,7 @@ class Interface:
             context.present(self.console)
 
             for event in tev.wait():
+                context.convert_event(event)
                 did_handle = self.event_handler.dispatch(event)
                 if did_handle:
                     continue

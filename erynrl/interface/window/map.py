@@ -1,6 +1,6 @@
 # Eryn Wells <eryn@erynwells.me>
 
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import tcod.event as tev
@@ -16,7 +16,7 @@ from ...object import Entity, Hero
 class MapWindow(Window):
     '''A Window that displays a game map'''
 
-    class EventHandler(Window.EventHandler):
+    class EventHandler(Window.EventHandler['MapWindow']):
         '''An event handler for the MapWindow.'''
 
         def ev_mousemotion(self, event: tev.MouseMotion) -> bool:
@@ -24,23 +24,40 @@ class MapWindow(Window):
             if not mouse_point:
                 return False
 
-            # TODO: Convert window point to map point
-            # TODO: Perform a path finding operation from the hero to the mouse point
-            # TODO: Highlight those points on the map
+            log.UI.info('Mouse point in window %s', mouse_point)
+
+            hero = self.window.hero
+            if not hero:
+                return False
+
+            map_point = self.window.convert_window_point_to_map(mouse_point)
+            log.UI.info('Mouse point in map %s', map_point)
+
+            map_ = self.window.map
+            path = map_.find_walkable_path_from_point_to_point(hero.position, map_point)
+            map_.highlight_points(path)
 
             return False
 
     # pylint: disable=redefined-builtin
-    def __init__(self, bounds: Rect, map: Map, **kwargs):
-        super().__init__(bounds, **kwargs)
+    def __init__(self, bounds: Rect, map: Map, hero: Hero, **kwargs):
+        super().__init__(bounds, event_handler=self.__class__.EventHandler(self), **kwargs)
         self.map = map
 
         self.drawable_map_bounds = map.bounds
+        self.hero = hero
         self.entities: List[Entity] = []
 
         self._draw_bounds = self.drawable_bounds
 
-    def update_drawable_map_bounds(self, hero: Hero):
+    def convert_window_point_to_map(self, point: Point) -> Point:
+        '''
+        Convert a point in window coordinates to a point relative to the map's
+        origin point.
+        '''
+        return point - Vector.from_point(self._draw_bounds.origin)
+
+    def update_drawable_map_bounds(self):
         '''
         Figure out what portion of the map is drawable and update
         `self.drawable_map_bounds`. This method attempts to keep the hero
@@ -59,7 +76,7 @@ class MapWindow(Window):
             return
 
         # Attempt to keep the player centered in the viewport.
-        hero_point = hero.position
+        hero_point = self.hero.position
 
         if viewport_is_wider_than_map:
             x = 0
@@ -115,8 +132,6 @@ class MapWindow(Window):
         drawable_map_bounds = self.drawable_map_bounds
         drawable_bounds = self.drawable_bounds
 
-        log.UI.info('Drawing map')
-
         map_slice = np.s_[
             drawable_map_bounds.min_x: drawable_map_bounds.max_x + 1,
             drawable_map_bounds.min_y: drawable_map_bounds.max_y + 1]
@@ -126,18 +141,11 @@ class MapWindow(Window):
             console_draw_bounds.min_x: console_draw_bounds.max_x + 1,
             console_draw_bounds.min_y: console_draw_bounds.max_y + 1]
 
-        log.UI.debug('Map bounds=%s, slice=%s', drawable_map_bounds, map_slice)
-        log.UI.debug('Console bounds=%s, slice=%s', drawable_bounds, console_slice)
-
         console.tiles_rgb[console_slice] = self.map.composited_tiles[map_slice]
-
-        log.UI.info('Done drawing map')
 
     def _draw_entities(self, console):
         map_bounds_vector = Vector.from_point(self.drawable_map_bounds.origin)
         draw_bounds_vector = Vector.from_point(self._draw_bounds.origin)
-
-        log.UI.info('Drawing entities')
 
         for ent in self.entities:
             # Only draw entities that are in the field of view
@@ -161,5 +169,3 @@ class MapWindow(Window):
                 string=ent.symbol,
                 fg=ent.foreground,
                 bg=tuple(map_tile_at_entity_position['bg'][:3]))
-
-        log.UI.info('Done drawing entities')

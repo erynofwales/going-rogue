@@ -6,15 +6,17 @@ Defines an abstract CorridorGenerator and several concrete subclasses. These cla
 
 import random
 from itertools import pairwise
-from typing import List
+from typing import List, TYPE_CHECKING
 
 import tcod
-import numpy as np
 
 from ... import log
 from ...geometry import Point
-from ..room import Room
+from ..room import Corridor, Room
 from ..tile import Empty, Floor, Wall
+
+if TYPE_CHECKING:
+    from .. import Map
 
 
 class CorridorGenerator:
@@ -22,13 +24,16 @@ class CorridorGenerator:
     Corridor generators produce corridors between rooms.
     '''
 
-    def generate(self, rooms: List[Room]) -> bool:
+    def generate(self, map: 'Map') -> bool:
         '''Generate corridors given a list of rooms.'''
         raise NotImplementedError()
 
-    def apply(self, tiles: np.ndarray):
+    def apply(self, map: 'Map'):
         '''Apply corridors to a tile grid.'''
         raise NotImplementedError()
+
+    def _sorted_rooms(self, rooms: List[Room]) -> List[Room]:
+        return sorted(rooms, key=lambda r: r.bounds.origin)
 
 
 class ElbowCorridorGenerator(CorridorGenerator):
@@ -48,25 +53,23 @@ class ElbowCorridorGenerator(CorridorGenerator):
     '''
 
     def __init__(self):
-        self.corridors: List[List[Point]] = []
+        self.corridors: List[Corridor] = []
 
-    def generate(self, rooms: List[Room]) -> bool:
+    def generate(self, map: 'Map') -> bool:
+        rooms = map.rooms
+
         if len(rooms) < 2:
             return True
 
-        sorted_rooms = sorted(rooms, key=lambda r: r.bounds.origin)
+        sorted_rooms = self._sorted_rooms(rooms)
 
-        for (left_room, right_room) in pairwise(sorted_rooms):
+        for left_room, right_room in pairwise(sorted_rooms):
             corridor = self._generate_corridor_between(left_room, right_room)
-            self.corridors.append(corridor)
-
-        for i in range(len(rooms) - 2):
-            corridor = self._generate_corridor_between(rooms[i], rooms[i + 2])
             self.corridors.append(corridor)
 
         return True
 
-    def _generate_corridor_between(self, left_room, right_room):
+    def _generate_corridor_between(self, left_room, right_room) -> Corridor:
         left_room_bounds = left_room.bounds
         right_room_bounds = right_room.bounds
 
@@ -77,12 +80,18 @@ class ElbowCorridorGenerator(CorridorGenerator):
         end_point = right_room_bounds.midpoint
 
         # Randomly choose whether to move horizontally then vertically or vice versa
-        if random.random() < 0.5:
+        horizontal_first = random.random() < 0.5
+        if horizontal_first:
             corner = Point(end_point.x, start_point.y)
         else:
             corner = Point(start_point.x, end_point.y)
 
-        log.MAP.debug('Digging a tunnel between %s and %s with corner %s', start_point, end_point, corner)
+        log.MAP.debug(
+            'Digging a tunnel between %s and %s with corner %s (%s)',
+            start_point,
+            end_point,
+            corner,
+            'horizontal' if horizontal_first else 'vertical')
         log.MAP.debug('|-> start: %s', left_room_bounds)
         log.MAP.debug('`->   end: %s', right_room_bounds)
 
@@ -94,9 +103,13 @@ class ElbowCorridorGenerator(CorridorGenerator):
         for x, y in tcod.los.bresenham(tuple(corner), tuple(end_point)).tolist():
             corridor.append(Point(x, y))
 
-        return corridor
+        return Corridor(points=corridor)
 
-    def apply(self, tiles):
+    def apply(self, map: 'Map'):
+        tiles = map.tiles
+
+        map.corridors = self.corridors
+
         for corridor in self.corridors:
             for pt in corridor:
                 tiles[pt.x, pt.y] = Floor

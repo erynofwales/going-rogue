@@ -57,14 +57,11 @@ class Engine:
         self.rng = tcod.random.Random()
         self.message_log = MessageLog()
 
-        map_size = config.map_size
         map_generator = RoomsAndCorridorsGenerator(
             RoomGenerator(
-                size=map_size,
-                config=RoomGenerator.Configuration(
+                RoomGenerator.Configuration(
                     rect_method=BSPRectMethod(
-                        size=map_size,
-                        config=BSPRectMethod.Configuration(number_of_rooms=30)),
+                        BSPRectMethod.Configuration(number_of_rooms=30)),
                     room_method=OrRoomMethod(
                         methods=[
                             (0.2, CellularAtomatonRoomMethod(CellularAtomataMapGenerator.Configuration())),

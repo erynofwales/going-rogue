@@ -23,24 +23,32 @@ class RoomGenerator:
 
     @dataclass
     class Configuration:
+        '''
+        Configuration of a RoomGenerator
+
+        ### Attributes
+
+        rect_method : RectMethod
+            A RectMethod object to produce rectangles
+        room_method : RoomMethod
+            A RoomMethod object to produce rooms from rectangles
+        '''
         rect_method: 'RectMethod'
         room_method: 'RoomMethod'
 
-    def __init__(self, *, size: Size, config: Configuration):
-        self.size = size
+    def __init__(self, config: Configuration):
         self.configuration = config
 
         self.rooms: List[Room] = []
-
         self.up_stairs: List[Point] = []
         self.down_stairs: List[Point] = []
 
-    def generate(self):
+    def generate(self, map: 'Map'):
         '''Generate rooms and stairs'''
         rect_method = self.configuration.rect_method
         room_method = self.configuration.room_method
 
-        for rect in rect_method.generate():
+        for rect in rect_method.generate(map):
             room = room_method.room_in_rect(rect)
             if not room:
                 break
@@ -51,11 +59,10 @@ class RoomGenerator:
 
         self._generate_stairs()
 
-    # pylint: disable=redefined-builtin
     def apply(self, map: 'Map'):
         '''Apply the generated rooms to a tile array'''
         self._apply(map)
-        self._apply_stairs(map.tiles)
+        self._apply_stairs(map)
 
     def _apply(self, map: 'Map'):
         '''
@@ -67,6 +74,8 @@ class RoomGenerator:
             The game map to apply the generated room to
         '''
         tiles = map.tiles
+
+        map.rooms = self.rooms
 
         for room in self.rooms:
             for pt in room.floor_points:
@@ -93,7 +102,12 @@ class RoomGenerator:
         self.up_stairs.append(random.choice(list(up_stair_room.walkable_tiles)))
         self.down_stairs.append(random.choice(list(down_stair_room.walkable_tiles)))
 
-    def _apply_stairs(self, tiles):
+    def _apply_stairs(self, map: 'Map'):
+        tiles = map.tiles
+
+        map.up_stairs = self.up_stairs
+        map.down_stairs = self.down_stairs
+
         for pt in self.up_stairs:
             tiles[pt.numpy_index] = StairsUp
         for pt in self.down_stairs:
@@ -103,10 +117,7 @@ class RoomGenerator:
 class RectMethod:
     '''An abstract class defining a method for generating rooms.'''
 
-    def __init__(self, *, size: Size):
-        self.size = size
-
-    def generate(self) -> Iterator[Rect]:
+    def generate(self, map: 'Map') -> Iterator[Rect]:
         '''Generate rects to place rooms in until there are no more.'''
         raise NotImplementedError()
 
@@ -132,13 +143,14 @@ class OneBigRoomRectMethod(RectMethod):
         width_percentage: float = 0.5
         height_percentage: float = 0.5
 
-    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
-        super().__init__(size=size)
+    def __init__(self, config: Optional[Configuration] = None):
+        super().__init__()
         self.configuration = config or self.__class__.Configuration()
 
-    def generate(self) -> Iterator[Rect]:
-        width = self.size.width
-        height = self.size.height
+    def generate(self, map: 'Map') -> Iterator[Rect]:
+        map_size = map.bounds.size
+        width = map_size.width
+        height = map_size.height
 
         size = Size(math.floor(width * self.configuration.width_percentage),
                     math.floor(height * self.configuration.height_percentage))
@@ -156,23 +168,24 @@ class RandomRectMethod(RectMethod):
         minimum_room_size: Size = Size(7, 7)
         maximum_room_size: Size = Size(20, 20)
 
-    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
-        super().__init__(size=size)
+    def __init__(self, config: Optional[Configuration] = None):
         self.configuration = config or self.__class__.Configuration()
         self._rects: List[Rect] = []
 
-    def generate(self) -> Iterator[Rect]:
+    def generate(self, map: 'Map') -> Iterator[Rect]:
         minimum_room_size = self.configuration.minimum_room_size
         maximum_room_size = self.configuration.maximum_room_size
 
         width_range = (minimum_room_size.width, maximum_room_size.width)
         height_range = (minimum_room_size.height, maximum_room_size.height)
 
+        map_size = map.size
+
         while len(self._rects) < self.configuration.number_of_rooms:
             for _ in range(self.__class__.NUMBER_OF_ATTEMPTS_PER_RECT):
                 size = Size(random.randint(*width_range), random.randint(*height_range))
-                origin = Point(random.randint(0, self.size.width - size.width),
-                               random.randint(0, self.size.height - size.height))
+                origin = Point(random.randint(0, map_size.width - size.width),
+                               random.randint(0, map_size.height - size.height))
                 candidate_rect = Rect(origin, size)
 
                 overlaps_any_existing_room = any(candidate_rect.intersects(r) for r in self._rects)
@@ -186,6 +199,10 @@ class RandomRectMethod(RectMethod):
 
 
 class BSPRectMethod(RectMethod):
+    '''
+    Generate rectangles with Binary Space Partitioning.
+    '''
+
     @dataclass
     class Configuration:
         '''
@@ -219,18 +236,19 @@ class BSPRectMethod(RectMethod):
         maximum_room_size: Size = Size(20, 20)
         room_size_ratio: Tuple[float, float] = (1.1, 1.1)
 
-    def __init__(self, *, size: Size, config: Optional[Configuration] = None):
-        super().__init__(size=size)
+    def __init__(self, config: Optional[Configuration] = None):
         self.configuration = config or self.__class__.Configuration()
 
-    def generate(self) -> Iterator[Rect]:
+    def generate(self, map: 'Map') -> Iterator[Rect]:
         nodes_with_rooms = set()
 
         minimum_room_size = self.configuration.minimum_room_size
         maximum_room_size = self.configuration.maximum_room_size
 
+        map_size = map.size
+
         # Recursively divide the map into squares of various sizes to place rooms in.
-        bsp = tcod.bsp.BSP(x=0, y=0, width=self.size.width, height=self.size.height)
+        bsp = tcod.bsp.BSP(x=0, y=0, width=map_size.width, height=map_size.height)
 
         # Add 2 to the minimum width and height to account for walls
         bsp.split_recursive(

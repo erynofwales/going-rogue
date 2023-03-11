@@ -1,8 +1,10 @@
 # Eryn Wells <eryn@erynwells.me>
 
-from typing import List, TYPE_CHECKING
+'''
+This module defines a bunch of mechanisms for generating maps.
+'''
 
-import numpy as np
+from typing import List, TYPE_CHECKING
 
 from .corridor import CorridorGenerator
 from .room import RoomGenerator
@@ -25,7 +27,6 @@ class MapGenerator:
         '''The location of any routes to a lower floor of the dungeon.'''
         raise NotImplementedError()
 
-    # pylint: disable=redefined-builtin
     def generate(self, map: 'Map'):
         '''Generate a map and place it in `tiles`'''
         raise NotImplementedError()
@@ -48,10 +49,8 @@ class RoomsAndCorridorsGenerator(MapGenerator):
     def down_stairs(self) -> List[Point]:
         return self.room_generator.down_stairs
 
-    # pylint: disable=redefined-builtin
     def generate(self, map: 'Map'):
-        self.room_generator.generate()
+        self.room_generator.generate(map)
         self.room_generator.apply(map)
-
-        self.corridor_generator.generate(self.room_generator.rooms)
-        self.corridor_generator.apply(map.tiles)
+        self.corridor_generator.generate(map)
+        self.corridor_generator.apply(map)

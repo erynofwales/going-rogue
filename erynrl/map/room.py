@@ -4,7 +4,7 @@
 Implements an abstract Room class, and subclasses that implement it. Rooms are basic components of maps.
 '''
 
-from typing import Iterable
+from typing import Iterable, Iterator, List, Optional
 
 import numpy as np
 
@@ -118,3 +118,21 @@ class FreeformRoom(Room):
 
     def __str__(self):
         return '\n'.join(''.join(chr(i['light']['ch']) for i in row) for row in self.tiles)
+
+
+class Corridor:
+    '''
+    A corridor is a list of points connecting two endpoints
+    '''
+
+    def __init__(self, points: Optional[List[Point]] = None):
+        self.points: List[Point] = points or []
+
+    @property
+    def length(self) -> int:
+        '''The length of this corridor'''
+        return len(self.points)
+
+    def __iter__(self) -> Iterator[Point]:
+        for pt in self.points:
+            yield pt

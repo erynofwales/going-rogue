@@ -6,7 +6,7 @@ parts of a map.
 '''
 
 import random
-from typing import Iterable
+from typing import Iterable, List
 
 import numpy as np
 import tcod
@@ -14,6 +14,7 @@ import tcod
 from ..configuration import Configuration
 from ..geometry import Point, Rect, Size
 from .generator import MapGenerator
+from .room import Corridor, Room
 from .tile import Empty, Shroud
 
 
@@ -29,9 +30,6 @@ class Map:
         shape = map_size.numpy_shape
         self.tiles = np.full(shape, fill_value=Empty, order='F')
 
-        self.up_stairs = generator.up_stairs
-        self.down_stairs = generator.down_stairs
-
         self.highlighted = np.full(shape, fill_value=False, order='F')
 
         # Map tiles that are currently visible to the player
@@ -43,6 +41,12 @@ class Map:
         self.__walkable_points = None
 
         generator.generate(self)
+
+        # Map Features
+        self.rooms: List[Room] = []
+        self.corridors: List[Corridor] = []
+        self.up_stairs = generator.up_stairs
+        self.down_stairs = generator.down_stairs
 
     @property
     def bounds(self) -> Rect:

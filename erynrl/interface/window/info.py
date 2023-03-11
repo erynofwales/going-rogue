@@ -4,6 +4,8 @@
 Declares the InfoWindow.
 '''
 
+from tcod.console import Console
+
 from . import Window
 from ..color import HealthBar
 from ..percentage_bar import PercentageBar
@@ -34,7 +36,7 @@ class InfoWindow(Window):
 
         self.hit_points_bar.percent_filled = hp / max_hp
 
-    def draw(self, console):
+    def draw(self, console: Console):
         super().draw(console)
 
         drawable_bounds = self.drawable_bounds

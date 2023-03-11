@@ -4,6 +4,8 @@
 Declares the MessageLogWindow.
 '''
 
+from tcod.console import Console
+
 from . import Window
 from ...geometry import Rect
 from ...messages import MessageLog
@@ -16,6 +18,6 @@ class MessageLogWindow(Window):
         super().__init__(bounds, framed=True)
         self.message_log = message_log
 
-    def draw(self, console):
+    def draw(self, console: Console):
         super().draw(console)
         self.message_log.render_to_console(console, self.drawable_bounds)

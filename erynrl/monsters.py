@@ -4,9 +4,11 @@
 the dungeon.'''
 
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Optional, Tuple
 
 # pylint: disable=too-many-instance-attributes
+
+
 @dataclass(frozen=True)
 class Species:
     '''A kind of monster.
@@ -35,7 +37,8 @@ class Species:
     attack_power: int
     defense: int
     foreground_color: Tuple[int, int, int]
-    background_color: Tuple[int, int, int] = None
+    background_color: Optional[Tuple[int, int, int]] = None
+
 
 Orc = Species(name='Orc', symbol='o',
               foreground_color=(63, 127, 63),

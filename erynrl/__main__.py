@@ -12,6 +12,9 @@ from .geometry import Size
 from .interface import Interface
 
 
+TITLE = 'ErynRL'
+
+
 def parse_args(argv, *a, **kw):
     parser = argparse.ArgumentParser(*a, **kw)
     parser.add_argument('--debug', action='store_true', default=True)
@@ -53,7 +56,7 @@ def main(argv):
     interface = Interface(configuration.console_size, engine)
     tileset = configuration.console_font_configuration.tileset
 
-    with tcod.context.new(columns=interface.console.width, rows=interface.console.height, tileset=tileset) as context:
+    with tcod.context.new(columns=interface.console.width, rows=interface.console.height, tileset=tileset, title=TITLE) as context:
         interface.run_event_loop(context)
 
     return 0

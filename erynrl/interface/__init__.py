@@ -44,7 +44,6 @@ class Interface:
 
         hero = self.engine.hero
         self.info_window.update_hero(hero)
-        self.map_window.update_drawable_map_bounds()
 
         sorted_entities = sorted(self.engine.entities, key=lambda e: e.render_order.value)
         self.map_window.entities = sorted_entities

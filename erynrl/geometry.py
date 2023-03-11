@@ -206,6 +206,16 @@ class Rect:
         return self.origin.y + self.size.height - 1
 
     @property
+    def end_x(self) -> int:
+        '''X-value beyond the end of the rectangle.'''
+        return self.origin.x + self.size.width
+
+    @property
+    def end_y(self) -> int:
+        '''Y-value beyond the end of the rectangle.'''
+        return self.origin.y + self.size.height
+
+    @property
     def width(self) -> int:
         '''The width of the rectangle. A convenience property for accessing `self.size.width`.'''
         return self.size.width
@@ -299,8 +309,7 @@ class Rect:
         raise TypeError(f'{self.__class__.__name__} cannot contain value of type {other.__class__.__name__}')
 
     def __contains_point(self, pt: Point) -> bool:
-        return (pt.x >= self.min_x and pt.x <= self.max_x
-                and pt.y >= self.min_y and pt.y <= self.max_y)
+        return self.min_x <= pt.x <= self.max_x and self.min_y <= pt.y <= self.max_y
 
     def __contains_rect(self, other: 'Rect') -> bool:
         return (self.min_x <= other.min_x

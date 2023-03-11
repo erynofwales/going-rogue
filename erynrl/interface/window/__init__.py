@@ -1,5 +1,9 @@
 # Eryn Wells <eryn@erynwells.me>
 
+'''
+Declares the Window class.
+'''
+
 from typing import Generic, Optional, TypeVar
 
 from tcod import event as tev
@@ -49,26 +53,34 @@ class Window:
 
     def __init__(self, bounds: Rect, *, framed: bool = True, event_handler: Optional['EventHandler'] = None):
         self.bounds = bounds
+        '''The window's bounds in console coordinates'''
+
         self.is_framed = framed
+        '''A `bool` indicating whether the window has a frame'''
+
         self.event_handler = event_handler or self.__class__.EventHandler(self)
+        '''The window's event handler'''
 
     @property
     def drawable_bounds(self) -> Rect:
         '''
-        The bounds of the window that is drawable, inset by its frame if
-        `is_framed` is `True`.
+        A rectangle in console coordinates defining the area of the window that
+        is drawable, inset by the window's frame if it has one.
         '''
         if self.is_framed:
             return self.bounds.inset_rect(1, 1, 1, 1)
         return self.bounds
 
-    def convert_console_point(self, point: Point) -> Optional[Point]:
+    def convert_console_point_to_window(self, point: Point, *, use_drawable_bounds: bool = False) -> Optional[Point]:
         '''
-        Converts a point in console coordinates to window-relative coordinates.
-        If the point is out of bounds of the window, return None.
+        Converts a point in console coordinates to window coordinates. If the
+        point is out of bounds of the window, return None.
         '''
-        converted_point = point - Vector.from_point(self.bounds.origin)
-        return converted_point if converted_point in self.bounds else None
+        bounds = self.drawable_bounds if use_drawable_bounds else self.bounds
+        if point in bounds:
+            return point - Vector.from_point(bounds.origin)
+
+        return None
 
     def draw(self, console: Console):
         '''Draw the window to the conole'''

@@ -30,7 +30,7 @@
             "propagate": false
         },
         "erynrl.actions": {
-            "level": "INFO",
+            "level": "ERROR",
             "handlers": [
                 "console"
             ]
@@ -42,7 +42,7 @@
             ]
         },
         "erynrl.actions.tree": {
-            "level": "INFO",
+            "level": "ERROR",
             "handlers": [
                 "console"
             ],
@@ -63,10 +63,11 @@
             "propagate": false
         },
         "erynrl.ui": {
-            "level": "WARN",
+            "level": "INFO",
             "handlers": [
                 "console"
-            ]
+            ],
+            "propagate": false
         },
         "erynrl.visible": {
             "level": "WARN",

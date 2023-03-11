@@ -6,7 +6,7 @@ import tcod
 import tcod.event as tev
 
 from .actions.action import Action
-from .actions.game import BumpAction, ExitAction, RegenerateRoomsAction, WaitAction
+from .actions.game import BumpAction, ExitAction, WaitAction
 from .geometry import Direction
 
 if TYPE_CHECKING:
@@ -45,8 +45,6 @@ class EngineEventHandler(tev.EventDispatch[Action]):
                 action = BumpAction(hero, Direction.NorthEast)
             case tcod.event.KeySym.y:
                 action = BumpAction(hero, Direction.NorthWest)
-            case tcod.event.KeySym.SPACE:
-                action = RegenerateRoomsAction()
             case tcod.event.KeySym.PERIOD:
                 if not is_shift_pressed:
                     action = WaitAction(hero)

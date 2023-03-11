@@ -36,13 +36,6 @@ class ExitAction(Action):
         raise SystemExit()
 
 
-class RegenerateRoomsAction(Action):
-    '''Regenerate the dungeon map'''
-
-    def perform(self, engine: 'Engine') -> ActionResult:
-        return self.failure()
-
-
 class MoveAction(ActionWithActor):
     '''An abstract Action that requires a direction to complete.'''
 

@@ -56,7 +56,11 @@ def main(argv):
     interface = Interface(configuration.console_size, engine)
     tileset = configuration.console_font_configuration.tileset
 
-    with tcod.context.new(columns=interface.console.width, rows=interface.console.height, tileset=tileset, title=TITLE) as context:
+    with tcod.context.new(
+            columns=interface.console.width,
+            rows=interface.console.height,
+            tileset=tileset,
+            title=TITLE) as context:
         interface.run_event_loop(context)
 
     return 0

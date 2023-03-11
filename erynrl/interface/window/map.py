@@ -190,6 +190,10 @@ class MapWindow(Window):
             if not self.map.point_is_visible(entity_position):
                 continue
 
+            renderable = ent.renderable
+            if not renderable:
+                continue
+
             # Entity positions are relative to the (0, 0) point of the Map. In
             # order to render them in the correct position in the console, we
             # need to transform them into viewport-relative coordinates.
@@ -200,6 +204,6 @@ class MapWindow(Window):
             console.print(
                 x=position.x,
                 y=position.y,
-                string=ent.symbol,
-                fg=ent.foreground,
+                string=renderable.symbol,
+                fg=renderable.foreground,
                 bg=tuple(map_tile_at_entity_position['bg'][:3]))

@@ -1,7 +1,8 @@
 # Eryn Wells <eryn@erynwells.me>
 
 import random
-from typing import Optional
+from enum import Enum
+from typing import Optional, Tuple
 
 
 class Component:
@@ -75,3 +76,42 @@ class Fighter(Component):
     def _reset_passive_heal_clock(self) -> None:
         self.__ticks_since_last_passive_heal = 0
         self.__ticks_for_next_passive_heal = random.randint(30, 70)
+
+
+class Renderable(Component):
+    class Order(Enum):
+        '''
+        These values indicate the order that an entity with a Renderable
+        component should be rendered. Higher values are rendered later and
+        therefore on top of items with lower orderings.
+        '''
+        ITEM = 1000
+        ACTOR = 2000
+        HERO = 3000
+
+    def __init__(
+            self,
+            symbol: str,
+            order: Order = Order.ACTOR,
+            fg: Optional[Tuple[int, int, int]] = None,
+            bg: Optional[Tuple[int, int, int]] = None):
+        if len(symbol) != 1:
+            raise ValueError(f'Symbol string "{symbol}" must be of length 1')
+
+        self.symbol = symbol
+        '''The symbol that represents this renderable on the map'''
+
+        self.order = order
+        '''
+        Specifies the layer at which this entity is rendered. Higher values are
+        rendered later, and thus on top of lower values.
+        '''
+
+        self.foreground = fg
+        '''The foreground color of the entity'''
+
+        self.background = bg
+        '''The background color of the entity'''
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}("{self.symbol}", {self.order}, {self.foreground}, {self.background})'

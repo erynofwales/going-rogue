@@ -165,7 +165,7 @@ class Engine:
 
         if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.map.visible[tuple(action.actor.position)]:
             if result.alternate:
-                alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
+                alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor}]'
             else:
                 alternate_string = str(result.alternate)
             log.ACTIONS_TREE.info(

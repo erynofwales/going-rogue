@@ -2,28 +2,17 @@
 
 '''Defines a number of high-level game objects. The parent class of all game objects is the Entity class.'''
 
-from enum import Enum
-from typing import TYPE_CHECKING, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Optional, Type
 
 import tcod
 
 from . import items
-from .components import Fighter
+from .components import Fighter, Renderable
 from .geometry import Point
 from .monsters import Species
 
 if TYPE_CHECKING:
     from .ai import AI
-
-
-class RenderOrder(Enum):
-    '''
-    These values indicate the order that an Entity should be rendered. Higher values are rendered later and therefore on
-    top of items with lower orderings.
-    '''
-    ITEM = 1000
-    ACTOR = 2000
-    HERO = 3000
 
 
 class Entity:
@@ -36,19 +25,9 @@ class Entity:
         game
     position : Point
         The Entity's location on the map
-    foreground : Tuple[int, int, int]
-        The foreground color used to render this Entity
-    background : Tuple[int, int, int], optional
-        The background color used to render this Entity
-    symbol : str
-        A single character string that represents this character on the map
     blocks_movement : bool
         True if this Entity blocks other Entities from moving through its
         position
-    render_order : RenderOrder
-        One of the RenderOrder values that specifies a layer at which this
-        entity will be rendered. Higher values are rendered on top of lower
-        values.
     '''
 
     # A monotonically increasing identifier to help differentiate between
@@ -57,66 +36,51 @@ class Entity:
 
     def __init__(
             self,
-            symbol: str,
             *,
             position: Optional[Point] = None,
             blocks_movement: Optional[bool] = True,
-            render_order: RenderOrder = RenderOrder.ITEM,
-            fg: Optional[Tuple[int, int, int]] = None,
-            bg: Optional[Tuple[int, int, int]] = None):
+            renderable: Optional[Renderable] = None):
         self.identifier = Entity.__next_identifier
         self.position = position if position else Point()
-        self.foreground = fg if fg else (255, 255, 255)
-        self.background = bg
-        self.symbol = symbol
+        self.renderable = renderable
         self.blocks_movement = blocks_movement
-        self.render_order = render_order
 
         Entity.__next_identifier += 1
 
-    def print_to_console(self, console: tcod.Console) -> None:
-        '''Render this Entity to the console'''
-        console.print(x=self.position.x, y=self.position.y, string=self.symbol, fg=self.foreground, bg=self.background)
+    def __str__(self):
+        return f'{self.__class__.__name__}!{self.identifier}'
 
-    def __str__(self) -> str:
-        return f'{self.symbol}!{self.identifier} at {self.position}'
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({self.symbol!r}, position={self.position!r}, fg={self.foreground!r}, bg={self.background!r})'
+    def __repr__(self):
+        return f'{self.__class__.__name__}(position={self.position!r}, blocks_movement={self.blocks_movement}, renderable={self.renderable!r})'
 
 
 class Actor(Entity):
     '''
-    An actor is an abstract class that defines an object that can act in the game world. Entities that are actors will
-    be allowed an opportunity to perform an action during each game turn.
+    An actor is an abstract class that defines an object that can act in the
+    game world. Entities that are actors will be allowed an opportunity to
+    perform an action during each game turn.
 
-    Attributes
-    ----------
+    ### Attributes
+
     ai : AI, optional
         If an entity can act on its own behalf, an instance of an AI class
     fighter : Fighter, optional
-        If an entity can fight or take damage, an instance of the Fighter class. This is where hit points, attack power,
-        defense power, etc live.
+        If an entity can fight or take damage, an instance of the Fighter class.
+        This is where hit points, attack power, defense power, etc live.
     '''
 
     def __init__(
             self,
-            symbol: str,
             *,
             position: Optional[Point] = None,
             blocks_movement: Optional[bool] = True,
-            render_order: RenderOrder = RenderOrder.ACTOR,
+            renderable: Optional[Renderable] = None,
             ai: Optional['AI'] = None,
-            fighter: Optional[Fighter] = None,
-            fg: Optional[Tuple[int, int, int]] = None,
-            bg: Optional[Tuple[int, int, int]] = None):
+            fighter: Optional[Fighter] = None):
         super().__init__(
-            symbol,
             position=position,
             blocks_movement=blocks_movement,
-            fg=fg,
-            bg=bg,
-            render_order=render_order)
+            renderable=renderable)
 
         # Components
         self.ai = ai
@@ -138,7 +102,7 @@ class Actor(Entity):
         return False
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({self.symbol!r}, position={self.position!r}, fighter={self.fighter!r}, ai={self.ai!r}, fg={self.foreground!r}, bg={self.background!r})'
+        return f'{self.__class__.__name__}(position={self.position!r}, fighter={self.fighter!r}, ai={self.ai!r}, renderable={self.renderable!r})'
 
 
 class Hero(Actor):
@@ -146,11 +110,9 @@ class Hero(Actor):
 
     def __init__(self, position: Point):
         super().__init__(
-            '@',
             position=position,
             fighter=Fighter(maximum_hit_points=30, attack_power=5, defense=2),
-            render_order=RenderOrder.HERO,
-            fg=tuple(tcod.white))
+            renderable=Renderable('@', Renderable.Order.HERO, tuple(tcod.white)))
 
     @property
     def name(self) -> str:
@@ -176,12 +138,13 @@ class Monster(Actor):
             defense=species.defense)
 
         super().__init__(
-            species.symbol,
             ai=ai_class(self),
             position=position,
             fighter=fighter,
-            fg=species.foreground_color,
-            bg=species.background_color)
+            renderable=Renderable(
+                symbol=species.symbol,
+                fg=species.foreground_color,
+                bg=species.background_color))
 
         self.species = species
 
@@ -206,12 +169,13 @@ class Item(Entity):
     '''An instance of an Item'''
 
     def __init__(self, kind: items.Item, position: Optional[Point] = None, name: Optional[str] = None):
-        super().__init__(kind.symbol,
-                         position=position,
+        super().__init__(position=position,
                          blocks_movement=False,
-                         render_order=RenderOrder.ITEM,
-                         fg=kind.foreground_color,
-                         bg=kind.background_color)
+                         renderable=Renderable(
+                             symbol=kind.symbol,
+                             order=Renderable.Order.ITEM,
+                             fg=kind.foreground_color,
+                             bg=kind.background_color))
         self.kind = kind
         self._name = name
 

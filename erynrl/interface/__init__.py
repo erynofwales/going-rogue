@@ -45,7 +45,8 @@ class Interface:
         hero = self.engine.hero
         self.info_window.update_hero(hero)
 
-        sorted_entities = sorted(self.engine.entities, key=lambda e: e.render_order.value)
+        sorted_entities = sorted(filter(lambda e: e.renderable is not None, self.engine.entities),
+                                 key=lambda e: e.renderable.order.value)
         self.map_window.entities = sorted_entities
 
     def draw(self):

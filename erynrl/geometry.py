@@ -300,7 +300,7 @@ class Rect:
 
     def __contains_point(self, pt: Point) -> bool:
         return (pt.x >= self.min_x and pt.x <= self.max_x
-                and pt.y >= self.min_x and pt.y <= self.max_y)
+                and pt.y >= self.min_y and pt.y <= self.max_y)
 
     def __contains_rect(self, other: 'Rect') -> bool:
         return (self.min_x <= other.min_x

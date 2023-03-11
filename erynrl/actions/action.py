@@ -12,6 +12,10 @@ if TYPE_CHECKING:
 class Action:
     '''An action with no specific actor'''
 
+    def __init__(self, actor: Actor):
+        super().__init__()
+        self.actor = actor
+
     # pylint: disable=unused-argument
     def perform(self, engine: 'Engine') -> ActionResult:
         '''Perform this action.
@@ -42,17 +46,3 @@ class Action:
 
     def __repr__(self):
         return f'{self.__class__.__name__}()'
-
-
-class ActionWithActor(Action):
-    '''An action that assigned to an actor'''
-
-    def __init__(self, actor: Actor):
-        super().__init__()
-        self.actor = actor
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__} for {self.actor!s}'
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}({self.actor!r})'

@@ -11,7 +11,6 @@ Action : Base class of all actions
         BumpAction
         WalkAction
         MeleeAction
-    ExitAction
     WaitAction
 '''
 
@@ -22,21 +21,14 @@ from .. import items
 from .. import log
 from ..geometry import Vector
 from ..object import Actor, Item
-from .action import Action, ActionWithActor
+from .action import Action
 from .result import ActionResult
 
 if TYPE_CHECKING:
     from ..engine import Engine
 
 
-class ExitAction(Action):
-    '''Exit the game.'''
-
-    def perform(self, engine: 'Engine') -> ActionResult:
-        raise SystemExit()
-
-
-class MoveAction(ActionWithActor):
+class MoveAction(Action):
     '''An abstract Action that requires a direction to complete.'''
 
     def __init__(self, actor: Actor, direction: Vector):
@@ -157,7 +149,7 @@ class MeleeAction(MoveAction):
             return self.success()
 
 
-class WaitAction(ActionWithActor):
+class WaitAction(Action):
     '''Wait a turn'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
@@ -174,7 +166,7 @@ class WaitAction(ActionWithActor):
         return self.success()
 
 
-class DieAction(ActionWithActor):
+class DieAction(Action):
     '''Kill an Actor'''
 
     def perform(self, engine: 'Engine') -> ActionResult:
@@ -193,7 +185,7 @@ class DieAction(ActionWithActor):
         return self.success()
 
 
-class DropItemAction(ActionWithActor):
+class DropItemAction(Action):
     '''Drop an item'''
 
     def __init__(self, actor: 'Actor', item: 'Item'):
@@ -205,7 +197,7 @@ class DropItemAction(ActionWithActor):
         return self.success()
 
 
-class HealAction(ActionWithActor):
+class HealAction(Action):
     '''Heal a target actor some number of hit points'''
 
     def __init__(self, actor: 'Actor', hit_points_to_recover: int):

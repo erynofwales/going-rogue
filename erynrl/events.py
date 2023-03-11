@@ -6,7 +6,7 @@ import tcod
 import tcod.event as tev
 
 from .actions.action import Action
-from .actions.game import BumpAction, ExitAction, WaitAction
+from .actions.game import BumpAction, WaitAction
 from .geometry import Direction
 
 if TYPE_CHECKING:
@@ -51,9 +51,6 @@ class EngineEventHandler(tev.EventDispatch[Action]):
 
         return action
 
-    def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
-        return ExitAction()
-
 
 class GameOverEventHandler(tev.EventDispatch[Action]):
     '''When the game is over (the hero dies, the player quits, etc), this event handler takes over.'''
@@ -61,6 +58,3 @@ class GameOverEventHandler(tev.EventDispatch[Action]):
     def __init__(self, engine: 'Engine'):
         super().__init__()
         self.engine = engine
-
-    def ev_quit(self, event: tev.Quit) -> Optional[Action]:
-        return ExitAction()

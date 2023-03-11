@@ -2,7 +2,7 @@
 
 '''Defines event handling mechanisms.'''
 
-from typing import TYPE_CHECKING
+from typing import NoReturn, TYPE_CHECKING
 
 from tcod import event as tev
 
@@ -41,6 +41,11 @@ class InterfaceEventHandler(tev.EventDispatch[bool]):
 
     def ev_mousebuttonup(self, event: tev.MouseButtonUp) -> bool:
         return self._handle_event(event)
+
+    def ev_quit(self, event: tev.Quit) -> NoReturn:
+        # TODO: Maybe show a "do you want to quit?" alert?
+        # TODO: Probably inform the engine that we're shutting down.
+        raise SystemExit()
 
     def _handle_event(self, event: tev.Event) -> bool:
         for handler in self._handlers:

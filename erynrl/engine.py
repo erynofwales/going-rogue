@@ -9,7 +9,7 @@ import tcod
 
 from . import log
 from . import monsters
-from .actions.action import Action, ActionWithActor
+from .actions.action import Action
 from .actions.result import ActionResult
 from .ai import HostileEnemy
 from .configuration import Configuration
@@ -110,7 +110,7 @@ class Engine:
 
     def process_input_action(self, action: Action):
         '''Process an Action from player input'''
-        if not isinstance(action, ActionWithActor):
+        if not isinstance(action, Action):
             action.perform(self)
             return
 
@@ -159,7 +159,7 @@ class Engine:
             if action:
                 self._perform_action_until_done(action)
 
-    def _perform_action_until_done(self, action: ActionWithActor) -> ActionResult:
+    def _perform_action_until_done(self, action: Action) -> ActionResult:
         '''Perform the given action and any alternate follow-up actions until the action chain is done.'''
         result = action.perform(self)
 
@@ -184,7 +184,7 @@ class Engine:
 
             if log.ACTIONS_TREE.isEnabledFor(log.INFO) and self.map.visible[tuple(action.actor.position)]:
                 if result.alternate:
-                    alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor.symbol}]'
+                    alternate_string = f'{result.alternate.__class__.__name__}[{result.alternate.actor}]'
                 else:
                     alternate_string = str(result.alternate)
                 log.ACTIONS_TREE.info(
